@@ -6,6 +6,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { MODELS } from './config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -70,7 +71,7 @@ function loadExamples(profile) {
 function buildInternalPrompt(spec, styleDna, examples) {
   const { profile, topic, audience, user_input, constraints, controls } = spec;
   
-  const prompt = `# UPPGIFT
+  let prompt = `# UPPGIFT
 Skriv ett LinkedIn-inlägg enligt profilen "${profile}".
 
 # STIL-DNA (följ detta noggrant)
@@ -79,7 +80,56 @@ ${styleDna}
 # EXEMPEL-FRAGMENT (för inspiration, EJ kopiering)
 ${examples}
 
-${ANTI_CLONE_GUARDRAIL}
+${ANTI_CLONE_GUARDRAIL}`;
+
+  // Add hard rules for warm_provocation profile
+  if (profile === 'warm_provocation') {
+    prompt += `
+
+# HÅRDA REGLER FÖR WARM PROVOCATION (OBLIGATORISKT)
+
+## Hook (OBLIGATORISKT - första raden)
+Första raden MÅSTE börja med direkt tilltal "Du" och konfrontera läsaren. Välj EN av dessa strukturer:
+- "Du är inte [X]. Du är [Y]." (t.ex. "Du är inte konflikträdd. Du är konfliktointresserad.")
+- "Du tror att [X]. Det är det inte." (t.ex. "Du tror att du inte är konflikträdd. Det är det inte.")
+- "Du vill ha [X]. Men du gör [Y]." (t.ex. "Du vill ha harmoni. Men du gör passivt aggressiva blinkningar i Slack.")
+
+VIKTIGT: Variera mellan dessa tre strukturer för att undvika monotoni. Alla är konfronterande och avslöjande.
+
+FÖRBJUD i första 3 meningarna:
+- "Vi säger..."
+- "Många..."
+- "Det är viktigt..."
+- "Konflikter är..."
+
+## Ironisk spegel (OBLIGATORISKT block efter listan)
+Efter listan MÅSTE följa ett ironiskt spegel-block. Strukturen är obligatorisk, men formuleringen kan varieras:
+
+OBLIGATORISK STRUKTUR (4 delar):
+1. En rad som pekar ut läsaren (t.ex. "Du vet vem jag menar." / "Du känner igen dig." / "Du vet exakt vad jag menar.")
+2. En negation/ironi (t.ex. "Nej nej. Inte du." / "Inte du förstås." / "Nej, inte du.")
+3. En ironisk rationalisering i citattecken (t.ex. "Du 'tycker bara inte om onödigt drama'." / "Du 'väljer bara dina strider'.")
+4. En bekräftelse (t.ex. "Exakt." / "Precis." / "Just det.")
+
+VIKTIGT: Behåll rytmen och funktionen, men variera formuleringen för att undvika box-ticking.
+
+## Lista (OBLIGATORISKT)
+- 3-5 rader
+- Varje rad MÅSTE börja med exakt "– " (en dash + mellanslag)
+- "- " (vanlig bindestreck) är FÖRBJUDET
+
+## Avslut (OBLIGATORISKT)
+Endast en spegelfråga. FÖRBJUD:
+- "Tänk om vi..."
+- "Det finns ett bättre sätt..."
+- "Jag utmanar dig..."
+- "Låt oss..."
+
+Exempel på spegelfråga: "Vad kostar det att inte säga det?" eller "Vad försöker du slippa genom att kalla det 'onödigt drama'?"
+`;
+  }
+  
+  prompt += `
 
 # ANVÄNDARENS INPUT
 Ämne: ${topic}
@@ -193,7 +243,7 @@ async function callOpenAI(prompt, spec) {
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: MODELS.generationModel,
         messages: [
           { role: 'system', content: 'Du är en expert på att skriva engagerande LinkedIn-inlägg på svenska. Du följer instruktioner exakt.' },
           { role: 'user', content: prompt }
@@ -258,9 +308,14 @@ export async function generate(specPath, runDir) {
   console.log('🤖 Genererar output...');
   const result = await callOpenAI(internalPrompt, spec);
   
+  // Sanitize output: replace "- " with "– " in lists (compliance fix)
+  let sanitizedOutput = result.output;
+  // Match lines that start with "- " (not already "– ")
+  sanitizedOutput = sanitizedOutput.replace(/^(\s*)- /gm, '$1– ');
+  
   // Save output
   const outputPath = path.join(runDir, 'output_v1.txt');
-  fs.writeFileSync(outputPath, result.output);
+  fs.writeFileSync(outputPath, sanitizedOutput);
   console.log(`💾 Sparade: ${outputPath}`);
   
   if (result.isDummy) {
@@ -272,7 +327,7 @@ export async function generate(specPath, runDir) {
   return {
     spec,
     internalPrompt,
-    output: result.output,
+    output: sanitizedOutput,  // Return sanitized output
     isDummy: result.isDummy,
     runDir
   };

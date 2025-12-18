@@ -10,6 +10,7 @@ import { getTextByScope } from './utils.js';
 import { runAllRegexChecks } from './checks/regex-checks.js';
 import { runAllHeuristicChecks } from './checks/heuristic-checks.js';
 import { runAllLLMJudgeChecks } from './checks/llm-judge.js';
+import { MODELS } from './config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -155,6 +156,11 @@ function buildSummaryMd(results, runId) {
 **Run ID:** ${runId}
 **Profile:** ${profile}
 **Timestamp:** ${results.timestamp}
+
+## Models used
+- **Generation:** ${MODELS.generationModel}
+- **Judge:** ${MODELS.judgeModel}
+- **Patch:** ${MODELS.patchModel}
 
 ## Scores
 

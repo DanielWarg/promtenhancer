@@ -7,6 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { wordDiff, normalizeForComparison } from './utils.js';
+import { MODELS } from './config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,7 +65,7 @@ export const PATCH_BUDGETS = {
   'parafrasera': { maxLines: 2, location: 'any', replace: true },
   'miljo': { maxLines: 2, location: 'middle', insert: true },
   'format': { maxLines: 0, location: 'full', modifyOnly: true, noWordChange: true },
-  'rytm': { maxLines: 2, location: 'middle', insert: true },
+  'rytm': { maxLines: 3, location: 'middle', insert: true },
   'metafor': { maxLines: 2, location: 'middle', insert: true },
   'mikrodetaljer': { maxLines: 3, location: 'middle', insert: true },
   'sarbar-auktoritet': { maxLines: 2, location: 'middle', insert: true },
@@ -76,9 +77,18 @@ export const PATCH_BUDGETS = {
 };
 
 /**
- * Determine which patch to apply based on failed checks
+ * Determine which patch to apply based on failed checks and W007 score
  */
-export function determinePatch(failedChecks) {
+export function determinePatch(failedChecks, checkResults = {}) {
+  // Check W007 score for gray zone (65-85) - patch required even if not failed
+  const w007Result = checkResults['W007'];
+  if (w007Result && typeof w007Result.score === 'number') {
+    if (w007Result.score < 85) {
+      // W007 gray zone: patch required
+      return 'de-moralisera';
+    }
+  }
+  
   // Get patch types needed for failed checks
   const patchesNeeded = failedChecks
     .map(checkId => CHECK_TO_PATCH[checkId])
@@ -249,144 +259,233 @@ function applyListaPatch(output) {
 }
 
 /**
- * DE-MORALISERA PATCH v2 - Inject self-inclusion + mirror question
- * For W007: Inte moralpredikan
+ * DE-MORALISERA PATCH v3 - Remove preachy formulations + add self-involvement + mirror question
+ * For W007: Inte moralpredikan (gray zone: 65-85)
  * 
- * Strategy: Find first "uncomfortable observation" and inject after it:
- * (A) Self-distanced line: "Jag har gjort exakt samma sak." 
- * (B) Mirror question without imperative: "Vad försöker du slippa...?"
- * Budget: Max 3 lines, inserted in middle after first observation
+ * Strategy:
+ * 1. Remove preachy formulations ("Tänk om vi...", "Det finns ett bättre sätt...", etc.)
+ * 2. Add self-involvement line
+ * 3. Replace ending with mirror question (not instruction)
+ * Budget: Max 3 lines changed
  */
 async function applyDeMoraliseraPatch(output, spec) {
   const MAX_LINES = 3;
   const lines = output.split('\n');
   const changes = [];
   
-  // Templates for self-inclusion (A) and mirror questions (B)
-  const selfInclusionTemplates = [
-    'Jag har gjort exakt samma sak.',
-    'Jag känner igen mig i det här.',
-    'Jag har också gömt mig bakom "vi tar det sen".',
-    'Jag har stått där själv – med klumpen i magen.',
-    'Jag vet. Jag har varit där.'
+  // Preachy patterns to remove
+  const preachyPatterns = [
+    /^Tänk om vi/i,
+    /^Det finns ett bättre sätt/i,
+    /^Jag utmanar dig/i,
+    /^Låt oss/i,
+    /^Så nästa gång du känner.*stanna upp/i,
+    /^Det är inte alltid lätt, men/i,
+    /^Konflikter är en del av livet/i
   ];
   
+  // Self-involvement templates
+  const selfInvolvementTemplates = [
+    'Jag känner igen mig.',
+    'Jag har gjort det här själv.',
+    'Jag har också stått där.',
+    'Jag vet hur det känns.',
+    'Jag har varit där.'
+  ];
+  
+  // Mirror question templates (NOT instructions)
   const mirrorQuestionTemplates = [
+    'Vad kostar det att inte säga det?',
     'Vad försöker du slippa genom att kalla det "onödigt drama"?',
-    'Vad kostar det att låta det ligga kvar?',
     'Vad händer om du aldrig tar det där samtalet?',
     'Vad är det egentligen du skyddar dig från?',
     'Vad vinner du på att vänta?'
   ];
   
-  // Find the first "uncomfortable observation" - a line that points out reader behavior
-  // Look for patterns like: "Du [verb]", list items with "–", or "Så istället för..."
-  const observationPatterns = [
-    /^(Du|Ni) (är|vill|tror|gör|säger|tycker)/i,
-    /^– .*(du|ni|de)/i,
-    /^Så istället för/i,
-    /inte konflikträdd/i,
-    /"[^"]+"/,  // Quoted phrases often indicate observation
-    /\bNej\.?\s*$/i  // Rhythmic "Nej." often follows observation
-  ];
+  let patchedLines = [...lines];
+  let linesChanged = 0;
   
-  let firstObservationIndex = -1;
-  let observationEndIndex = -1;
-  
-  // Find the first uncomfortable observation block (may span multiple lines)
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (line.length === 0) continue;
-    
-    for (const pattern of observationPatterns) {
+  // Step 1: Remove preachy formulations
+  for (let i = 0; i < patchedLines.length && linesChanged < MAX_LINES; i++) {
+    const line = patchedLines[i].trim();
+    for (const pattern of preachyPatterns) {
       if (pattern.test(line)) {
-        if (firstObservationIndex === -1) {
-          firstObservationIndex = i;
-        }
-        observationEndIndex = i;
-        break;
-      }
-    }
-    
-    // Stop after we've found a block and hit a significant gap
-    if (firstObservationIndex !== -1 && observationEndIndex !== -1) {
-      // Look for end of observation block (empty line or different content)
-      if (i > observationEndIndex + 1) {
+        // Remove the line
+        changes.push({
+          type: 'remove_preachy',
+          lineNum: i + 1,
+          removed: line
+        });
+        patchedLines[i] = '';
+        linesChanged++;
         break;
       }
     }
   }
   
-  // Fallback: if no observation found, look for list section (after "–" items)
-  if (firstObservationIndex === -1) {
-    for (let i = 0; i < lines.length; i++) {
-      if (lines[i].trim().startsWith('–')) {
-        // Find end of list
-        let listEnd = i;
-        while (listEnd < lines.length - 1 && lines[listEnd + 1].trim().startsWith('–')) {
-          listEnd++;
-        }
-        observationEndIndex = listEnd;
-        firstObservationIndex = i;
-        break;
-      }
+  // Step 2: Find ending section (last 3-5 lines before signature)
+  let endingStart = -1;
+  for (let i = patchedLines.length - 1; i >= 0; i--) {
+    if (patchedLines[i].trim().startsWith('/')) {
+      // Found signature, ending is before this
+      endingStart = Math.max(0, i - 5);
+      break;
     }
   }
   
-  if (firstObservationIndex === -1) {
-    // Last resort: insert after first third of text
-    observationEndIndex = Math.floor(lines.length / 3);
-    firstObservationIndex = observationEndIndex;
+  if (endingStart === -1) {
+    endingStart = Math.max(0, patchedLines.length - 5);
   }
   
-  // Select templates based on topic/spec for relevance
+  // Step 3: Replace ending with self-involvement + mirror question
   const topic = spec?.topic?.toLowerCase() || '';
-  let selfInclusion, mirrorQuestion;
+  let selfInvolvement, mirrorQuestion;
   
   if (topic.includes('konflikt')) {
-    selfInclusion = selfInclusionTemplates[2]; // "Jag har också gömt mig..."
-    mirrorQuestion = mirrorQuestionTemplates[0]; // "Vad försöker du slippa..."
-  } else if (topic.includes('feedback')) {
-    selfInclusion = selfInclusionTemplates[0]; // "Jag har gjort exakt samma sak."
-    mirrorQuestion = mirrorQuestionTemplates[1]; // "Vad kostar det..."
+    selfInvolvement = selfInvolvementTemplates[1]; // "Jag har gjort det här själv."
+    mirrorQuestion = mirrorQuestionTemplates[1]; // "Vad försöker du slippa..."
   } else {
-    // Random selection for variety
-    selfInclusion = selfInclusionTemplates[Math.floor(Math.random() * selfInclusionTemplates.length)];
-    mirrorQuestion = mirrorQuestionTemplates[Math.floor(Math.random() * mirrorQuestionTemplates.length)];
+    selfInvolvement = selfInvolvementTemplates[0]; // "Jag känner igen mig."
+    mirrorQuestion = mirrorQuestionTemplates[0]; // "Vad kostar det..."
   }
   
-  // Build the injection (2-3 lines with whitespace)
-  const injectionLines = [
-    '',  // Empty line before for breathing room
-    selfInclusion,
+  // Replace ending lines (keep max 3 lines)
+  const endingLines = [
+    selfInvolvement,
+    '',
     mirrorQuestion
   ];
   
-  // Insert after the observation block
-  const insertIndex = observationEndIndex + 1;
-  const patchedLines = [
-    ...lines.slice(0, insertIndex),
-    ...injectionLines,
-    ...lines.slice(insertIndex)
-  ];
+  // Find where to insert (after last non-empty line before signature)
+  let insertIndex = endingStart;
+  for (let i = endingStart; i < patchedLines.length; i++) {
+    if (patchedLines[i].trim().startsWith('/')) {
+      insertIndex = i;
+      break;
+    }
+    if (patchedLines[i].trim() && !preachyPatterns.some(p => p.test(patchedLines[i]))) {
+      insertIndex = i + 1;
+    }
+  }
+  
+  // Remove old ending lines and insert new
+  const linesToRemove = Math.min(3, insertIndex - endingStart);
+  patchedLines.splice(endingStart, linesToRemove, ...endingLines);
   
   changes.push({
-    type: 'injection',
-    afterLine: insertIndex,
-    injected: [selfInclusion, mirrorQuestion]
+    type: 'replace_ending',
+    replaced: `ending section (${linesToRemove} lines)`,
+    with: [selfInvolvement, mirrorQuestion]
+  });
+  linesChanged += linesToRemove;
+  
+  // Clean up: remove consecutive empty lines
+  const cleanedLines = [];
+  for (let i = 0; i < patchedLines.length; i++) {
+    if (i === 0 || patchedLines[i].trim() !== '' || cleanedLines[cleanedLines.length - 1].trim() !== '') {
+      cleanedLines.push(patchedLines[i]);
+    }
+  }
+  
+  return {
+    success: true,
+    patchedOutput: cleanedLines.join('\n'),
+    patchDescription: {
+      type: 'de-moralisera',
+      location: 'ending + preachy removal',
+      linesChanged: Math.min(linesChanged, MAX_LINES),
+      budgetUsed: `${Math.min(linesChanged, MAX_LINES)}/${MAX_LINES} lines`,
+      changes: changes.slice(0, 3)
+    }
+  };
+}
+
+/**
+ * RYTM PATCH - Insert rhythmic pause sequence
+ * For W004: Rytmisk paus ('Nej.' / 'Nej nej.' / 'Exakt.')
+ * 
+ * Strategy: Find last line of list sequence (lines starting with "– ")
+ * Insert 3-line pause sequence directly after: empty line + "Nej.\nNej nej.\nExakt."
+ * Must not be in last_screen (too close to signature)
+ */
+function applyRytmPatch(output) {
+  const lines = output.split('\n');
+  const changes = [];
+  
+  // Find last line of list sequence (lines starting with "– ")
+  let lastListIndex = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].trim().startsWith('–')) {
+      lastListIndex = i;
+    }
+  }
+  
+  if (lastListIndex === -1) {
+    return {
+      success: false,
+      error: 'NO_LIST_FOUND',
+      message: 'No list sequence found (lines starting with "– ")',
+      patchedOutput: null
+    };
+  }
+  
+  // Check that insertion point is not too close to signature (last_screen = last 6 lines)
+  const signatureStart = lines.length - 6;
+  if (lastListIndex >= signatureStart) {
+    // Insert earlier - find a safe spot in middle section
+    const middlePoint = Math.floor(lines.length / 2);
+    lastListIndex = Math.min(middlePoint, signatureStart - 3);
+  }
+  
+  // Build pause sequence (3 lines) - each as separate array element to ensure newlines
+  const pauseSequence = [
+    '',        // Empty line for spacing
+    'Nej.',    // First pause
+    'Nej nej.', // Second pause
+    'Exakt.'   // Third pause
+  ];
+  
+  // Insert after last list line + empty line (if not already empty)
+  const insertIndex = lastListIndex + 1;
+  
+  // Check if there's already an empty line
+  const hasEmptyLine = insertIndex < lines.length && lines[insertIndex].trim() === '';
+  
+  // Build patched lines - each pause line is separate to ensure proper newlines
+  const patchedLines = [
+    ...lines.slice(0, insertIndex),
+    ...(hasEmptyLine ? pauseSequence.slice(1) : pauseSequence), // Skip first empty if already exists
+    ...lines.slice(insertIndex + (hasEmptyLine ? 1 : 0))
+  ];
+  
+  // Join with explicit newlines to ensure resilience against whitespace formatting
+  const patchedOutput = patchedLines.join('\n');
+  
+  // Log placement for debugging
+  const placementLog = `Inserted rhythm block after list line ${lastListIndex + 1} (list ended at line ${lastListIndex + 1}, inserted at ${insertIndex + 1})`;
+  
+  changes.push({
+    type: 'insert_rhythmic_pause',
+    afterLine: lastListIndex + 1,
+    inserted: pauseSequence.slice(1), // Exclude first empty line from description
+    placement: placementLog
   });
   
   return {
     success: true,
-    patchedOutput: patchedLines.join('\n'),
+    patchedOutput: patchedOutput,
     patchDescription: {
-      type: 'de-moralisera',
-      location: `after line ${insertIndex}`,
-      linesChanged: injectionLines.length,
-      budgetUsed: `${injectionLines.length}/${MAX_LINES} lines`,
+      type: 'rytm',
+      location: `after line ${lastListIndex + 1} (end of list)`,
+      placement: placementLog,
+      linesChanged: pauseSequence.length - (hasEmptyLine ? 1 : 0),
+      budgetUsed: `${pauseSequence.length - (hasEmptyLine ? 1 : 0)}/3 lines`,
       changes: [
-        { type: 'inject_self_inclusion', content: selfInclusion },
-        { type: 'inject_mirror_question', content: mirrorQuestion }
+        { 
+          type: 'insert', 
+          content: 'Nej.\nNej nej.\nExakt.',
+          placement: placementLog
+        }
       ]
     }
   };
@@ -413,6 +512,9 @@ export async function applyPatch(output, patchType, spec) {
     
     case 'lista':
       return applyListaPatch(output);
+    
+    case 'rytm':
+      return applyRytmPatch(output);
     
     case 'de-moralisera':
       return await applyDeMoraliseraPatch(output, spec);
@@ -466,6 +568,10 @@ export function buildDiffMd(iterations, runId) {
         md += `- **Word Diff:** ${desc.wordDiff} (${desc.wordDiff === 0 ? 'VALID' : 'INVALID'})\n`;
       }
 
+      if (desc.placement) {
+        md += `- **Placement:** ${desc.placement}\n`;
+      }
+
       if (desc.changes && desc.changes.length > 0) {
         md += `\n**Changes:**\n`;
         for (const change of desc.changes) {
@@ -477,6 +583,8 @@ export function buildDiffMd(iterations, runId) {
 `;
           } else if (typeof change === 'string') {
             md += `- ${change}\n`;
+          } else if (change.placement) {
+            md += `- ${change.content} (${change.placement})\n`;
           }
         }
       }
@@ -509,6 +617,9 @@ export function updateSummaryWithIterations(existingSummary, iterations) {
       if (iter.patch.description) {
         iterationSection += `  - Location: ${iter.patch.description.location}\n`;
         iterationSection += `  - Lines changed: ${iter.patch.description.linesChanged}\n`;
+        if (iter.patch.description.placement) {
+          iterationSection += `  - Placement: ${iter.patch.description.placement}\n`;
+        }
       }
     }
   }
@@ -580,8 +691,12 @@ export async function iterate(runDir, options = {}) {
       break;
     }
     
-    // Determine patch
-    const patchType = determinePatch(failedChecks);
+    // Determine patch (include check results for W007 gray zone detection)
+    const checkResultsMap = {};
+    for (const check of results.per_check) {
+      checkResultsMap[check.id] = check;
+    }
+    const patchType = determinePatch(failedChecks, checkResultsMap);
     
     if (!patchType) {
       console.log(`\n⚠️ No applicable patch for failed checks: ${failedChecks.join(', ')}`);

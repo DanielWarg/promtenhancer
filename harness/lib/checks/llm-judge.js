@@ -3,6 +3,8 @@
  * LLM Judge checks
  */
 
+import { MODELS } from '../config.js';
+
 // Score-based checks configuration
 const SCORE_BASED_CHECKS = new Set(['W007']);
 
@@ -142,7 +144,7 @@ function parseLLMResponse(response) {
  * Parse score-based LLM response (JSON format)
  * Returns: { score: 0-100, reasons: [...], pass: boolean }
  */
-function parseScoreResponse(response, passThreshold = 70) {
+function parseScoreResponse(response, passThreshold = 85) {
   const trimmed = response.trim();
   
   try {
@@ -226,27 +228,37 @@ async function callLLMJudge(text, checkId, options = {}) {
     : 'Du är en strikt textbedömare. Svara endast PASS eller FAIL följt av kort motivering.';
   
   try {
+    // gpt-5.1 uses max_completion_tokens instead of max_tokens
+    const isGPT51 = MODELS.judgeModel.includes('gpt-5.1');
+    const requestBody = {
+      model: MODELS.judgeModel,
+      messages: [
+        { 
+          role: 'system', 
+          content: systemPrompt
+        },
+        { 
+          role: 'user', 
+          content: `${prompt}\n\n---\nTEXT ATT BEDÖMA:\n${text}` 
+        }
+      ],
+      temperature: 0.2  // Lower temperature for more consistent scoring
+    };
+    
+    // Use correct parameter based on model
+    if (isGPT51) {
+      requestBody.max_completion_tokens = isScoreBased ? 200 : 150;
+    } else {
+      requestBody.max_tokens = isScoreBased ? 200 : 150;
+    }
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`
       },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { 
-            role: 'system', 
-            content: systemPrompt
-          },
-          { 
-            role: 'user', 
-            content: `${prompt}\n\n---\nTEXT ATT BEDÖMA:\n${text}` 
-          }
-        ],
-        temperature: 0.2,  // Lower temperature for more consistent scoring
-        max_tokens: isScoreBased ? 200 : 150
-      })
+      body: JSON.stringify(requestBody)
     });
     
     if (!response.ok) {
