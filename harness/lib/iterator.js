@@ -753,7 +753,8 @@ export async function iterate(runDir, options = {}) {
   const {
     complianceTarget = 95,
     qualityTarget = 85,
-    maxIterations = 3
+    maxIterations = 3,
+    stubMode = false
   } = options;
   
   const { evaluate } = await import('./evaluator.js');
@@ -774,7 +775,8 @@ export async function iterate(runDir, options = {}) {
   let results = await evaluate(runDir, { 
     complianceTarget, 
     qualityTarget, 
-    version: currentVersion 
+    version: currentVersion,
+    stubMode
   });
   
   iterations.push({
@@ -848,12 +850,12 @@ export async function iterate(runDir, options = {}) {
       attemptedPatches.push(patchType);
       
       console.log(`\n🔧 v${currentVersion} → v${currentVersion + 1}: Trying ${patchType} patch`);
-      
-      // Load current output
-      const outputPath = path.join(runDir, `output_v${currentVersion}.txt`);
-      const currentOutput = fs.readFileSync(outputPath, 'utf-8');
-      
-      // Apply patch
+    
+    // Load current output
+    const outputPath = path.join(runDir, `output_v${currentVersion}.txt`);
+    const currentOutput = fs.readFileSync(outputPath, 'utf-8');
+    
+    // Apply patch
       patchResult = await applyPatch(currentOutput, patchType, spec);
       
       if (patchResult.success) {
@@ -901,7 +903,8 @@ export async function iterate(runDir, options = {}) {
     results = await evaluate(runDir, { 
       complianceTarget, 
       qualityTarget, 
-      version: currentVersion 
+      version: currentVersion,
+      stubMode
     });
     
     iterations.push({

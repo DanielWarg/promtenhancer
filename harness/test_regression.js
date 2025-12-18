@@ -25,6 +25,14 @@ const RUNS_DIR = path.join(__dirname, 'runs');
 let allPassed = true;
 const errors = [];
 
+// Check if we should run in no-network mode
+const hasAPIKey = !!process.env.OPENAI_API_KEY;
+if (!hasAPIKey) {
+  console.log('⚠️  OPENAI_API_KEY not set - running in no-network mode');
+  console.log('   (LLM steps skipped, deterministic checks + patches only)');
+  console.log('');
+}
+
 console.log('\n🧪 Regression Test: W004 Rhythm Patch Fallback\n');
 console.log('═'.repeat(60));
 
@@ -33,7 +41,12 @@ console.log('\n📋 Test 1: Normal warm_provocation (with list)');
 console.log('─'.repeat(60));
 
 try {
-  execSync('npm run harness -- run --spec ./harness/specs/warm_provocation_konflikter.json', {
+  // Add --no-network flag if API key is missing
+  const cmd = hasAPIKey 
+    ? 'npm run harness -- run --spec ./harness/specs/warm_provocation_konflikter.json'
+    : 'npm run harness -- run --spec ./harness/specs/warm_provocation_konflikter.json --no-network';
+  
+  execSync(cmd, {
     cwd: path.join(__dirname, '..'),
     stdio: 'inherit'
   });
@@ -68,7 +81,12 @@ console.log('\n📋 Test 2: warm_no_list fixture (fallback: no list)');
 console.log('─'.repeat(60));
 
 try {
-  execSync('npm run harness -- run --spec ./harness/specs/_fixtures/warm_no_list.json', {
+  // Add --no-network flag if API key is missing
+  const cmd = hasAPIKey
+    ? 'npm run harness -- run --spec ./harness/specs/_fixtures/warm_no_list.json'
+    : 'npm run harness -- run --spec ./harness/specs/_fixtures/warm_no_list.json --no-network';
+  
+  execSync(cmd, {
     cwd: path.join(__dirname, '..'),
     stdio: 'inherit'
   });
@@ -166,7 +184,12 @@ console.log('\n📋 Test 3: w007c_trigger fixture (W007c patch trigger)');
 console.log('─'.repeat(60));
 
 try {
-  execSync('npm run harness -- run --spec ./harness/specs/_fixtures/w007c_trigger.json', {
+  // Add --no-network flag if API key is missing
+  const cmd = hasAPIKey
+    ? 'npm run harness -- run --spec ./harness/specs/_fixtures/w007c_trigger.json'
+    : 'npm run harness -- run --spec ./harness/specs/_fixtures/w007c_trigger.json --no-network';
+  
+  execSync(cmd, {
     cwd: path.join(__dirname, '..'),
     stdio: 'inherit'
   });

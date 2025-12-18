@@ -36,6 +36,53 @@ const DEFAULT_TARGETS = {
 };
 
 /**
+ * Check API budget status (key exists and quota available)
+ * Returns: { hasKey: boolean, hasQuota: boolean, reason: string }
+ */
+function checkAPIBudget() {
+  const apiKey = process.env.OPENAI_API_KEY;
+  
+  if (!apiKey) {
+    return {
+      hasKey: false,
+      hasQuota: false,
+      reason: 'missing key'
+    };
+  }
+  
+  // Note: Actual quota checking would require an API call
+  // For now, we assume if key exists, quota is available
+  // In production, you might want to add a quota check endpoint
+  return {
+    hasKey: true,
+    hasQuota: true,
+    reason: null
+  };
+}
+
+/**
+ * Detect if we should run in no-network mode
+ * No-network mode: skip LLM steps (generation + judge) but run deterministic checks (regex/heuristic) and patches
+ */
+function shouldUseNoNetworkMode(options = {}) {
+  // Explicit flag to force no-network mode
+  if (options['no-network'] || options['no_network']) {
+    return { enabled: true, reason: 'explicit flag' };
+  }
+  
+  // Auto-detect: if API key missing, use no-network mode
+  const budget = checkAPIBudget();
+  if (!budget.hasKey) {
+    return { enabled: true, reason: 'missing key' };
+  }
+  
+  // If quota exhausted (would need API call to check, but for now we assume OK if key exists)
+  // In production, you might want to check quota status here
+  
+  return { enabled: false, reason: null };
+}
+
+/**
  * Parse command line arguments
  */
 function parseArgs(args) {
@@ -185,6 +232,15 @@ async function cmdRun(options) {
   console.log('═══════════════════════════════════════════════════════════════');
   console.log('');
   
+  // Check API budget and determine if we should use no-network mode
+  const noNetwork = shouldUseNoNetworkMode(options);
+  if (noNetwork.enabled) {
+    const reason = noNetwork.reason === 'missing key' ? 'missing key' : (noNetwork.reason === 'quota' ? 'quota exhausted' : 'explicit flag');
+    console.log(`⚠️  LLM steps skipped: ${reason}`);
+    console.log('   Running in no-network mode (deterministic checks + patches only)');
+    console.log('');
+  }
+  
   // Step 1: Generate
   const genResult = await cmdGenerate(options);
   
@@ -196,7 +252,8 @@ async function cmdRun(options) {
   
   const evalResult = await evaluate(genResult.runDir, {
     complianceTarget,
-    qualityTarget
+    qualityTarget,
+    stubMode: noNetwork.enabled  // Use stub mode if no-network mode is enabled
   });
   
   // Check if iteration needed
@@ -222,7 +279,8 @@ async function cmdRun(options) {
   const iterResult = await iterate(genResult.runDir, {
     complianceTarget,
     qualityTarget,
-    maxIterations: parseInt(options.max) || 3
+    maxIterations: parseInt(options.max) || 3,
+    stubMode: noNetwork.enabled  // Use stub mode if no-network mode is enabled
   });
   
   console.log('');
