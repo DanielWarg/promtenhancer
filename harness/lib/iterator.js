@@ -24,6 +24,7 @@ export const CHECK_TO_PATCH = {
   'W006': 'signatur',
   'W007': 'de-moralisera',
   'W007b': 'de-moralisera',  // Guard - samma patch som W007
+  'W007c': 'de-moralisera',  // Guard - samma patch som W007
   
   // Brev
   'B001': 'hook',
@@ -305,7 +306,79 @@ async function applyDeMoraliseraPatch(output, spec) {
   let patchedLines = [...lines];
   let linesChanged = 0;
   
-  // Step 1: Remove preachy formulations
+  // Step 1: Find and replace preachy paragraphs (3-5 lines with advice patterns)
+  // Look for paragraphs that contain subtle preachy patterns
+  const subtlePreachyPatterns = [
+    /det finns ett bättre sätt/i,
+    /tänk om vi istället/i,
+    /så här gör du/i,
+    /nyckeln är/i,
+    /mitt råd är/i,
+    /det handlar om att/i,
+    /konflikter är.*verktyg/i,
+    /att ta.*samtal.*kan vara/i
+  ];
+  
+  for (let i = 0; i < patchedLines.length - 2 && linesChanged < MAX_LINES; i++) {
+    // Check if this could be a paragraph (3-5 consecutive non-empty lines)
+    const paragraphLines = [];
+    let paragraphStart = i;
+    
+    for (let j = i; j < Math.min(i + 5, patchedLines.length); j++) {
+      const line = patchedLines[j].trim();
+      if (line && !line.startsWith('/') && !line.startsWith('–')) {
+        paragraphLines.push(line);
+      } else if (paragraphLines.length > 0) {
+        break; // End of paragraph
+      } else {
+        paragraphStart = j + 1; // Skip empty lines
+      }
+    }
+    
+    if (paragraphLines.length >= 3 && paragraphLines.length <= 5) {
+      // Check if paragraph contains subtle preachy patterns
+      const paragraphText = paragraphLines.join(' ');
+      const isPreachy = subtlePreachyPatterns.some(pattern => pattern.test(paragraphText));
+      
+      if (isPreachy && linesChanged < MAX_LINES) {
+        // Replace with deterministic mirror + self-inclusion + mirror question
+        const topic = spec?.topic?.toLowerCase() || '';
+        let selfInvolvement, mirrorQuestion;
+        
+        if (topic.includes('konflikt')) {
+          selfInvolvement = selfInvolvementTemplates[1];
+          mirrorQuestion = mirrorQuestionTemplates[1];
+        } else {
+          selfInvolvement = selfInvolvementTemplates[0];
+          mirrorQuestion = mirrorQuestionTemplates[0];
+        }
+        
+        // Deterministic rewrite: mirror statement + self-inclusion + mirror question
+        const replacement = [
+          'Du vet vad jag menar.',
+          selfInvolvement,
+          mirrorQuestion
+        ];
+        
+        // Replace the paragraph
+        const linesToReplace = paragraphLines.length;
+        patchedLines.splice(paragraphStart, linesToReplace, ...replacement);
+        
+        changes.push({
+          type: 'replace_preachy_paragraph',
+          lineNum: paragraphStart + 1,
+          replaced: `${linesToReplace} lines (preachy paragraph)`,
+          with: replacement
+        });
+        
+        linesChanged += linesToReplace;
+        i = paragraphStart + replacement.length - 1; // Skip replaced lines
+        continue;
+      }
+    }
+  }
+  
+  // Step 1b: Remove explicit preachy line patterns (if budget allows)
   for (let i = 0; i < patchedLines.length && linesChanged < MAX_LINES; i++) {
     const line = patchedLines[i].trim();
     for (const pattern of preachyPatterns) {

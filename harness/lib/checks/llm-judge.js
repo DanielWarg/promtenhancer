@@ -315,6 +315,61 @@ export async function runLLMJudgeCheck(text, check, options = {}) {
 }
 
 /**
+ * Run W007 with median guard for gray zone (80-89)
+ * If score is in gray zone, run 2 extra calls and take median
+ */
+async function runW007WithMedianGuard(text, check, options = {}) {
+  const { stubMode = false } = options;
+  
+  if (stubMode) {
+    return await runLLMJudgeCheck(text, check, options);
+  }
+  
+  // First call
+  const firstResult = await runLLMJudgeCheck(text, check, options);
+  
+  if (firstResult.score === undefined || firstResult.score === null) {
+    return firstResult; // Error case, return as-is
+  }
+  
+  const score = firstResult.score;
+  const GRAY_ZONE_MIN = 80;
+  const GRAY_ZONE_MAX = 89;
+  
+  // Check if in gray zone
+  if (score >= GRAY_ZONE_MIN && score <= GRAY_ZONE_MAX) {
+    // Run 2 extra calls for consistency
+    const rawScores = [score];
+    
+    for (let i = 0; i < 2; i++) {
+      const extraResult = await runLLMJudgeCheck(text, check, options);
+      if (extraResult.score !== undefined && extraResult.score !== null) {
+        rawScores.push(extraResult.score);
+      }
+    }
+    
+    // Calculate median
+    rawScores.sort((a, b) => a - b);
+    const median = rawScores[Math.floor(rawScores.length / 2)];
+    
+    // Use median as final score
+    const finalResult = {
+      ...firstResult,
+      score: median,
+      pass: median >= (check.pass_threshold || 85),
+      raw_scores: rawScores,
+      final_score: median,
+      notes: `Score: ${median}/100 (median of ${rawScores.length} calls: [${rawScores.join(', ')}]) (threshold: ${check.pass_threshold || 85}). ${firstResult.reasons?.join('; ') || ''}`
+    };
+    
+    return finalResult;
+  }
+  
+  // Not in gray zone, return first result as-is
+  return firstResult;
+}
+
+/**
  * Run all LLM judge checks for a profile
  */
 export async function runAllLLMJudgeChecks(text, checks, getTextByScope, options = {}) {
@@ -324,12 +379,21 @@ export async function runAllLLMJudgeChecks(text, checks, getTextByScope, options
     if (check.type !== 'llm_judge') continue;
     
     const scopedText = getTextByScope(text, check.scope);
-    const result = await runLLMJudgeCheck(scopedText, check, options);
     
-    results[check.id] = {
-      ...result,
-      check
-    };
+    // Special handling for W007: median guard in gray zone
+    if (check.id === 'W007') {
+      const result = await runW007WithMedianGuard(scopedText, check, options);
+      results[check.id] = {
+        ...result,
+        check
+      };
+    } else {
+      const result = await runLLMJudgeCheck(scopedText, check, options);
+      results[check.id] = {
+        ...result,
+        check
+      };
+    }
   }
   
   return results;

@@ -174,6 +174,44 @@ function checkG001(text, examplesContent) {
 }
 
 /**
+ * W007c - Guard: Inga subtila föreläsarfraser
+ * Fångar subtila coach-fraser som inte fångas av W007b
+ */
+function checkW007c(text) {
+  // Subtila föreläsarfraser som inte är explicita "du borde/måste/ska"
+  const subtlePreachyPatterns = [
+    { pattern: /\bdet finns ett bättre sätt\b/gi, phrase: 'det finns ett bättre sätt' },
+    { pattern: /\btänk om vi istället\b/gi, phrase: 'tänk om vi istället' },
+    { pattern: /\bså här gör du\b/gi, phrase: 'så här gör du' },
+    { pattern: /\bnyckeln är\b/gi, phrase: 'nyckeln är' },
+    { pattern: /\bmitt råd är\b/gi, phrase: 'mitt råd är' },
+    { pattern: /\bdet handlar om att\b/gi, phrase: 'det handlar om att' }
+  ];
+  
+  const violations = [];
+  
+  for (const { pattern, phrase } of subtlePreachyPatterns) {
+    const matches = text.match(pattern);
+    if (matches) {
+      violations.push(...matches.map(() => phrase));
+    }
+  }
+  
+  if (violations.length === 0) {
+    return {
+      pass: true,
+      notes: 'Inga subtila föreläsarfraser hittade'
+    };
+  }
+  
+  // Fail if any subtle preachy phrases found
+  return {
+    pass: false,
+    notes: `Hittade ${violations.length} subtil föreläsarfras: ${[...new Set(violations)].map(v => `"${v}"`).join(', ')}`
+  };
+}
+
+/**
  * W007b - Guard: Inga explicita fingerpekning-fraser
  * Fångar "du borde/måste/ska" så att W007 (llm_judge) kan fokusera på ton
  */
@@ -246,6 +284,8 @@ export function runHeuristicCheck(text, check, context = {}) {
       return checkW001a(text);
     case 'W007b':
       return checkW007b(text);
+    case 'W007c':
+      return checkW007c(text);
     case 'G001':
       return checkG001(text, context.examplesContent || '');
     default:
