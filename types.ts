@@ -1,17 +1,13 @@
-export interface PromptRequest {
-  userInput: string;
-  method: string;
-}
+export type ChannelType = 'linkedin' | 'newsletter' | 'general';
 
-export interface PromptResponse {
-  superPrompt: string;
-}
+export type LinkedInTone = 'rebel' | 'leader' | 'coach';
 
 export interface SavedPrompt {
   id: string;
   title: string;
   prompt: string;
   date: string;
+  channel: ChannelType;
 }
 
 export enum LoadingState {
@@ -33,5 +29,3 @@ export const METHODS = [
 export type MethodType = typeof METHODS[number];
 
 export type AppMode = 'create' | 'reverse-engineer';
-
-export type RoleType = 'viral' | 'corporate';

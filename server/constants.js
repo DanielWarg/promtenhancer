@@ -1,11 +1,9 @@
-import { AppMode, ChannelType, LinkedInTone } from "./types";
-
 export const getSystemInstruction = (
-  channel: ChannelType, 
-  mode: AppMode, 
-  tone: LinkedInTone, 
-  audience: string,
-  method: string
+  channel, 
+  mode, 
+  tone, 
+  audience,
+  method
 ) => {
   
   // SHARED GUARDRAILS FOR LINKEDIN
@@ -166,3 +164,4 @@ DITT SVAR SKA VARA ETT KODBLOCK MED FORMATET:
 \`\`\`
 `;
 };
+
