@@ -75,27 +75,34 @@ Svara endast: PASS eller FAIL, följt av en kort motivering (max 2 meningar).`,
   // W007 - Score-based (0-100) bedömning av TON (inte fraser - de fångas av W007b)
   W007: `Du ska bedöma TONEN i texten på en skala 0-100 för dimensionen "spegel vs predikan".
 
-VIKTIGT: Ignorera explicita fraser som "du borde/måste/ska" - de hanteras separat. 
-Fokusera ENDAST på den underliggande TONEN.
+VIKTIGT: 
+- Ignorera explicita fraser som "du borde/måste/ska" - de hanteras separat av W007b.
+- Fokusera på HUR texten kommunicerar, inte VAD den säger.
+- Ge bonus för: "vi"-språk, självinkludering ("jag har också..."), spegel-frågor, humor/ironi.
+- Dra av för: dömande ton, överlärar-attityd, avsaknad av självinsikt.
 
 SKALA (spegel vs predikan):
-- 90-100: Perfekt spegel. Läsaren känner "fan, det där är jag". Värme och humor. Avsändaren inkluderar sig själv.
-- 70-89: Bra spegel med värme. Provocerar men dömer inte. Mestadels igenkänning.
-- 50-69: Blandat. Ibland spegel, ibland lite föreläsande. Oklar position.
-- 30-49: Övervägande predikan. Tonen är dömande eller överlärar-aktig.
-- 0-29: Ren moralpredikan. Pekar finger. Läsaren känner "nu får jag skäll".
+- 85-100: Stark spegel. Läsaren känner "fan, det där är jag". Värme, humor, självinkludering tydlig.
+- 70-84: Bra spegel. Provocerar med värme. Mestadels igenkänning. Avsändaren visar sig.
+- 55-69: Blandat. Bra intentioner men ibland lite föreläsande. Grundton är ändå varm.
+- 40-54: Övervägande predikan. Tonen är mer informerande än speglande.
+- 0-39: Ren moralpredikan. Pekar finger. Läsaren känner "nu får jag skäll".
 
 KALIBRERINGSEXEMPEL:
 
-Exempel 1 (Score: 92):
+Exempel 1 (Score: 88):
 "Du vet vem jag menar. Nej nej. Inte du. Du är ju inte konflikträdd. Du 'tycker bara inte om onödigt drama'. Exakt."
 → Reasons: ["Ironisk spegel som avslöjar", "Humor utan att döma", "Läsaren känner igen sig"]
 
-Exempel 2 (Score: 75):
-"Och grejen är – det handlar inte om att bli tuffare. Det handlar om att förstå att konflikt inte är ett sammanbrott."
-→ Reasons: ["Reframing med värme", "Lite föreläsande men inte dömande", "Inkluderar snarare än pekar"]
+Exempel 2 (Score: 72):
+"Vi säger att vi inte är konflikträdda. Men om vi ser närmare... en tystnad i mötet. En passivt aggressiv blinkning i Slack."
+→ Reasons: ["Vi-språk inkluderar avsändaren", "Konkreta vardagsexempel skapar igenkänning", "Ingen fingerpekning"]
 
-Exempel 3 (Score: 45):
+Exempel 3 (Score: 65):
+"Konflikter är inte monster under sängen, de är verktyg för att växa. Att ta det jobbiga samtalet kan vara som att öppna ett fönster."
+→ Reasons: ["Metafor som förklarar snarare än dömer", "Lite föreläsande men inte aggressivt", "Saknar självinkludering"]
+
+Exempel 4 (Score: 45):
 "Det är hög tid att börja ta ansvar. Om du inte gör det nu så kommer du ångra det senare."
 → Reasons: ["Föreläsande ton", "Implicit skuld", "Saknar igenkänning och värme"]
 

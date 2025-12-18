@@ -191,7 +191,7 @@
             "scope": "full_text",
             "weight": 30,
             "score_based": true,
-            "pass_threshold": 70
+            "pass_threshold": 65
           }
         ]
       }

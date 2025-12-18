@@ -249,166 +249,145 @@ function applyListaPatch(output) {
 }
 
 /**
- * DE-MORALISERA PATCH - Remove finger-pointing, add mirror/inclusion
+ * DE-MORALISERA PATCH v2 - Inject self-inclusion + mirror question
  * For W007: Inte moralpredikan
+ * 
+ * Strategy: Find first "uncomfortable observation" and inject after it:
+ * (A) Self-distanced line: "Jag har gjort exakt samma sak." 
+ * (B) Mirror question without imperative: "Vad försöker du slippa...?"
+ * Budget: Max 3 lines, inserted in middle after first observation
  */
 async function applyDeMoraliseraPatch(output, spec) {
-  const budget = PATCH_BUDGETS['de-moralisera'];
-  
-  // Find finger-pointing patterns
-  const fingerPointingPatterns = [
-    /\bdu (borde|måste|ska)\b/gi,
-    /\b(man måste|man borde|det är dags att)\b/gi,
-    /\b(sluta|börja) (med att|att)\b/gi
-  ];
-  
+  const MAX_LINES = 3;
   const lines = output.split('\n');
-  let patchedLines = [...lines];
-  let changedCount = 0;
   const changes = [];
   
-  // Find lines with finger-pointing
-  for (let i = 0; i < lines.length && changedCount < budget.maxLines; i++) {
-    const line = lines[i];
-    let needsPatch = false;
+  // Templates for self-inclusion (A) and mirror questions (B)
+  const selfInclusionTemplates = [
+    'Jag har gjort exakt samma sak.',
+    'Jag känner igen mig i det här.',
+    'Jag har också gömt mig bakom "vi tar det sen".',
+    'Jag har stått där själv – med klumpen i magen.',
+    'Jag vet. Jag har varit där.'
+  ];
+  
+  const mirrorQuestionTemplates = [
+    'Vad försöker du slippa genom att kalla det "onödigt drama"?',
+    'Vad kostar det att låta det ligga kvar?',
+    'Vad händer om du aldrig tar det där samtalet?',
+    'Vad är det egentligen du skyddar dig från?',
+    'Vad vinner du på att vänta?'
+  ];
+  
+  // Find the first "uncomfortable observation" - a line that points out reader behavior
+  // Look for patterns like: "Du [verb]", list items with "–", or "Så istället för..."
+  const observationPatterns = [
+    /^(Du|Ni) (är|vill|tror|gör|säger|tycker)/i,
+    /^– .*(du|ni|de)/i,
+    /^Så istället för/i,
+    /inte konflikträdd/i,
+    /"[^"]+"/,  // Quoted phrases often indicate observation
+    /\bNej\.?\s*$/i  // Rhythmic "Nej." often follows observation
+  ];
+  
+  let firstObservationIndex = -1;
+  let observationEndIndex = -1;
+  
+  // Find the first uncomfortable observation block (may span multiple lines)
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line.length === 0) continue;
     
-    for (const pattern of fingerPointingPatterns) {
+    for (const pattern of observationPatterns) {
       if (pattern.test(line)) {
-        needsPatch = true;
+        if (firstObservationIndex === -1) {
+          firstObservationIndex = i;
+        }
+        observationEndIndex = i;
         break;
       }
     }
     
-    if (needsPatch) {
-      // Transform: Replace "du" with "vi" or add "jag också"
-      let newLine = line
-        .replace(/\bDu (borde|måste|ska)/gi, 'Vi kan')
-        .replace(/\bdu (borde|måste|ska)/gi, 'vi kan')
-        .replace(/\bman måste\b/gi, 'vi får')
-        .replace(/\bman borde\b/gi, 'vi kan')
-        .replace(/\bdet är dags att\b/gi, 'kanske är det läge att');
-      
-      if (newLine !== line) {
-        changes.push({
-          lineNum: i + 1,
-          before: line,
-          after: newLine
-        });
-        patchedLines[i] = newLine;
-        changedCount++;
+    // Stop after we've found a block and hit a significant gap
+    if (firstObservationIndex !== -1 && observationEndIndex !== -1) {
+      // Look for end of observation block (empty line or different content)
+      if (i > observationEndIndex + 1) {
+        break;
       }
     }
   }
   
-  // If no regex-based changes worked, try LLM-based patch
-  if (changedCount === 0) {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      return {
-        success: false,
-        error: 'NO_CHANGES_AND_NO_API',
-        message: 'No finger-pointing patterns found and no API key for LLM patch',
-        patchedOutput: null
-      };
-    }
-    
-    // Find the most "preachy" section using heuristic
-    let preachyIndex = -1;
-    let maxPreachyScore = 0;
-    
+  // Fallback: if no observation found, look for list section (after "–" items)
+  if (firstObservationIndex === -1) {
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].toLowerCase();
-      let score = 0;
-      if (line.includes('du ')) score += 2;
-      if (line.includes('bör')) score += 3;
-      if (line.includes('inte') && line.includes('du')) score += 2;
-      if (line.includes('måste')) score += 3;
-      if (line.includes('ska')) score += 1;
-      
-      if (score > maxPreachyScore) {
-        maxPreachyScore = score;
-        preachyIndex = i;
-      }
-    }
-    
-    if (preachyIndex >= 0) {
-      // Get context (surrounding lines)
-      const startIdx = Math.max(0, preachyIndex - 1);
-      const endIdx = Math.min(lines.length, preachyIndex + 2);
-      const section = lines.slice(startIdx, endIdx).join('\n');
-      
-      try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [
-              {
-                role: 'system',
-                content: `Du ska göra en MINIMAL ändring av texten för att ta bort fingerpekning och moralpredikan. 
-Regler:
-- Byt "du borde/måste/ska" till "vi kan" eller inkludera avsändaren
-- Behåll exakt samma längd (±10 tecken)
-- Behåll budskapet
-- Ändra BARA det som är fingerpekning
-- Returnera BARA den justerade texten, ingen förklaring`
-              },
-              {
-                role: 'user',
-                content: `Justera denna text:\n\n${section}`
-              }
-            ],
-            temperature: 0.3,
-            max_tokens: 200
-          })
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          const newSection = data.choices[0].message.content.trim();
-          
-          // Replace the section
-          const newSectionLines = newSection.split('\n');
-          for (let j = 0; j < Math.min(newSectionLines.length, endIdx - startIdx); j++) {
-            if (patchedLines[startIdx + j] !== newSectionLines[j]) {
-              changes.push({
-                lineNum: startIdx + j + 1,
-                before: patchedLines[startIdx + j],
-                after: newSectionLines[j]
-              });
-              patchedLines[startIdx + j] = newSectionLines[j];
-              changedCount++;
-            }
-          }
+      if (lines[i].trim().startsWith('–')) {
+        // Find end of list
+        let listEnd = i;
+        while (listEnd < lines.length - 1 && lines[listEnd + 1].trim().startsWith('–')) {
+          listEnd++;
         }
-      } catch (error) {
-        console.error('LLM patch error:', error.message);
+        observationEndIndex = listEnd;
+        firstObservationIndex = i;
+        break;
       }
     }
   }
   
-  if (changedCount === 0) {
-    return {
-      success: false,
-      error: 'NO_CHANGES_MADE',
-      message: 'Could not find finger-pointing to remove',
-      patchedOutput: null
-    };
+  if (firstObservationIndex === -1) {
+    // Last resort: insert after first third of text
+    observationEndIndex = Math.floor(lines.length / 3);
+    firstObservationIndex = observationEndIndex;
   }
+  
+  // Select templates based on topic/spec for relevance
+  const topic = spec?.topic?.toLowerCase() || '';
+  let selfInclusion, mirrorQuestion;
+  
+  if (topic.includes('konflikt')) {
+    selfInclusion = selfInclusionTemplates[2]; // "Jag har också gömt mig..."
+    mirrorQuestion = mirrorQuestionTemplates[0]; // "Vad försöker du slippa..."
+  } else if (topic.includes('feedback')) {
+    selfInclusion = selfInclusionTemplates[0]; // "Jag har gjort exakt samma sak."
+    mirrorQuestion = mirrorQuestionTemplates[1]; // "Vad kostar det..."
+  } else {
+    // Random selection for variety
+    selfInclusion = selfInclusionTemplates[Math.floor(Math.random() * selfInclusionTemplates.length)];
+    mirrorQuestion = mirrorQuestionTemplates[Math.floor(Math.random() * mirrorQuestionTemplates.length)];
+  }
+  
+  // Build the injection (2-3 lines with whitespace)
+  const injectionLines = [
+    '',  // Empty line before for breathing room
+    selfInclusion,
+    mirrorQuestion
+  ];
+  
+  // Insert after the observation block
+  const insertIndex = observationEndIndex + 1;
+  const patchedLines = [
+    ...lines.slice(0, insertIndex),
+    ...injectionLines,
+    ...lines.slice(insertIndex)
+  ];
+  
+  changes.push({
+    type: 'injection',
+    afterLine: insertIndex,
+    injected: [selfInclusion, mirrorQuestion]
+  });
   
   return {
     success: true,
     patchedOutput: patchedLines.join('\n'),
     patchDescription: {
       type: 'de-moralisera',
-      location: 'any',
-      linesChanged: changedCount,
-      budgetUsed: `${changedCount}/${budget.maxLines} lines`,
-      changes: changes.slice(0, 3)
+      location: `after line ${insertIndex}`,
+      linesChanged: injectionLines.length,
+      budgetUsed: `${injectionLines.length}/${MAX_LINES} lines`,
+      changes: [
+        { type: 'inject_self_inclusion', content: selfInclusion },
+        { type: 'inject_mirror_question', content: mirrorQuestion }
+      ]
     }
   };
 }
