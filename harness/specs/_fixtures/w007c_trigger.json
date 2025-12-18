@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "created_at": "2025-12-18T20:00:00Z",
+    "version": "1.1",
+    "harness_version": "1.1.0"
+  },
+  "channel": "linkedin",
+  "profile": "warm_provocation",
+  "topic": "Konflikträdsla på jobbet",
+  "audience": "Yrkesverksamma som undviker jobbiga samtal",
+  "user_input": "Skriv ett LinkedIn-inlägg om konflikter på jobbet. Texten ska vara varm och speglande, men innehålla frasen 'det finns ett bättre sätt' någonstans i mitten. Detta är en test för att verifiera att W007c triggar de-moralisera patch även när W007-score är >= 85.",
+  "constraints": {
+    "no_asterisks": true,
+    "no_swearing": true,
+    "language": "sv",
+    "max_chars": 1200,
+    "min_chars": 600,
+    "signature": {
+      "name": "Ann-Christin",
+      "tagline": "Ninja-psykolog och den som fortfarande övar på att inte skicka DM när jag borde ta mötet"
+    }
+  },
+  "controls": {
+    "friction": 4,
+    "warmth": 3,
+    "story": 3,
+    "seed": 99
+  }
+}
+

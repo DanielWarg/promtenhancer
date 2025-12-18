@@ -157,10 +157,11 @@
           {
             "id": "W007c",
             "title": "Inga subtila föreläsarfraser",
-            "description": "Guard: inga subtila coach-fraser ('det finns ett bättre sätt', 'nyckeln är', etc.)",
+            "description": "Guard: inga subtila coach-fraser ('det finns ett bättre sätt', 'nyckeln är', etc.) - patch-only, does not affect compliance_score",
             "type": "heuristic",
             "scope": "full_text",
-            "weight": 5
+            "weight": 0,
+            "patch_only": true
           },
           {
             "id": "G001",

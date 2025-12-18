@@ -81,6 +81,13 @@ export const PATCH_BUDGETS = {
  * Determine which patch to apply based on failed checks and W007 score
  */
 export function determinePatch(failedChecks, checkResults = {}) {
+  // Check W007c (patch-only guard): if it fails, trigger de-moralisera even if W007-score is OK
+  const w007cResult = checkResults['W007c'];
+  if (w007cResult && !w007cResult.pass) {
+    // W007c failed: subtle preachy phrases detected, patch required
+    return 'de-moralisera';
+  }
+  
   // Check W007 score for gray zone (65-85) - patch required even if not failed
   const w007Result = checkResults['W007'];
   if (w007Result && typeof w007Result.score === 'number') {
@@ -794,15 +801,18 @@ export async function iterate(runDir, options = {}) {
       .filter(c => !c.pass)
       .map(c => c.id);
     
-    if (failedChecks.length === 0) {
-      console.log(`\n⚠️ No failed checks but targets not met - stopping`);
-      break;
-    }
-    
-    // Determine patch (include check results for W007 gray zone detection)
+    // Determine patch (include check results for W007 gray zone and W007c detection)
     const checkResultsMap = {};
     for (const check of results.per_check) {
       checkResultsMap[check.id] = check;
+    }
+    
+    // Use determinePatch to get the right patch (handles W007c and W007 gray zone)
+    const determinedPatch = determinePatch(failedChecks, checkResultsMap);
+    
+    if (!determinedPatch && failedChecks.length === 0) {
+      console.log(`\n⚠️ No failed checks but targets not met - stopping`);
+      break;
     }
     
     // Try patches in priority order until one succeeds
@@ -811,10 +821,24 @@ export async function iterate(runDir, options = {}) {
     let patchResult = null;
     const attemptedPatches = [];
     
-    // Get all possible patches for failed checks
-    const patchesNeeded = failedChecks
-      .map(checkId => CHECK_TO_PATCH[checkId])
-      .filter(Boolean);
+    // If determinePatch returned a patch, use it (e.g., W007c or W007 gray zone)
+    // Otherwise, get patches from failed checks
+    let patchesNeeded = [];
+    if (determinedPatch) {
+      patchesNeeded = [determinedPatch];
+      // Log why patch was determined
+      const w007cResult = checkResultsMap['W007c'];
+      const w007Result = checkResultsMap['W007'];
+      if (w007cResult && !w007cResult.pass) {
+        console.log(`  🔍 W007c triggered patch (subtle preachy phrases detected)`);
+      } else if (w007Result && typeof w007Result.score === 'number' && w007Result.score < 85) {
+        console.log(`  🔍 W007 gray zone triggered patch (score: ${w007Result.score} < 85)`);
+      }
+    } else {
+      patchesNeeded = failedChecks
+        .map(checkId => CHECK_TO_PATCH[checkId])
+        .filter(Boolean);
+    }
     
     // Try each patch in priority order
     for (const candidatePatch of PATCH_ORDER) {

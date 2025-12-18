@@ -58,6 +58,11 @@ function calculateScores(checkResults, profileChecks) {
   let complianceTotal = 0;
   
   for (const check of complianceChecks) {
+    // Exclude patch-only checks (weight 0 or patch_only flag) from compliance score
+    // These are quality guards that only trigger patches, not form/compliance checks
+    if (check.weight === 0 || check.patch_only) {
+      continue;
+    }
     complianceTotal += check.weight;
     if (checkResults[check.id]?.pass) {
       compliancePassed += check.weight;
