@@ -13,7 +13,8 @@
     "harness:brev": "node harness/runner.js run --spec ./harness/specs/brev_smallbarn.json",
     "harness:warm": "node harness/runner.js run --spec ./harness/specs/warm_provocation_konflikter.json",
     "harness:eval": "node harness/runner.js eval --run ./harness/runs/latest",
-    "harness:compare": "node harness/runner.js compare --run ./harness/runs/latest"
+    "harness:compare": "node harness/runner.js compare --run ./harness/runs/latest",
+    "harness:test:regression": "node harness/test_regression.js"
   },
   "dependencies": {
     "react": "^19.2.3",

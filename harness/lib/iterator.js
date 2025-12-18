@@ -731,26 +731,47 @@ export async function iterate(runDir, options = {}) {
     for (const check of results.per_check) {
       checkResultsMap[check.id] = check;
     }
-    const patchType = determinePatch(failedChecks, checkResultsMap);
     
-    if (!patchType) {
-      console.log(`\n⚠️ No applicable patch for failed checks: ${failedChecks.join(', ')}`);
-      break;
+    // Try patches in priority order until one succeeds
+    let patchApplied = false;
+    let patchType = null;
+    let patchResult = null;
+    const attemptedPatches = [];
+    
+    // Get all possible patches for failed checks
+    const patchesNeeded = failedChecks
+      .map(checkId => CHECK_TO_PATCH[checkId])
+      .filter(Boolean);
+    
+    // Try each patch in priority order
+    for (const candidatePatch of PATCH_ORDER) {
+      if (!patchesNeeded.includes(candidatePatch)) continue;
+      
+      patchType = candidatePatch;
+      attemptedPatches.push(patchType);
+      
+      console.log(`\n🔧 v${currentVersion} → v${currentVersion + 1}: Trying ${patchType} patch`);
+      
+      // Load current output
+      const outputPath = path.join(runDir, `output_v${currentVersion}.txt`);
+      const currentOutput = fs.readFileSync(outputPath, 'utf-8');
+      
+      // Apply patch
+      patchResult = await applyPatch(currentOutput, patchType, spec);
+      
+      if (patchResult.success) {
+        patchApplied = true;
+        break; // Success - use this patch
+      } else {
+        console.log(`  ❌ ${patchType} patch failed: ${patchResult.message}`);
+        // Continue to next patch in priority order
+      }
     }
     
-    console.log(`\n🔧 v${currentVersion} → v${currentVersion + 1}: Applying ${patchType} patch`);
-    
-    // Load current output
-    const outputPath = path.join(runDir, `output_v${currentVersion}.txt`);
-    const currentOutput = fs.readFileSync(outputPath, 'utf-8');
-    
-    // Apply patch
-    const patchResult = await applyPatch(currentOutput, patchType, spec);
-    
-    if (!patchResult.success) {
-      console.log(`  ❌ Patch failed: ${patchResult.message}`);
+    if (!patchApplied) {
+      console.log(`\n⚠️ All applicable patches failed. Attempted: ${attemptedPatches.join(', ')}`);
       
-      // Record failed patch attempt
+      // Record failed patch attempts
       iterations.push({
         version: `v${currentVersion + 1}`,
         compliance: results.scores.compliance_score,
@@ -758,10 +779,10 @@ export async function iterate(runDir, options = {}) {
         total: results.scores.total_score,
         failedChecks,
         patch: {
-          type: patchType,
+          type: attemptedPatches.join(' → '),
           success: false,
-          error: patchResult.error,
-          message: patchResult.message
+          error: 'ALL_PATCHES_FAILED',
+          message: `All patches failed: ${attemptedPatches.join(', ')}`
         }
       });
       break;

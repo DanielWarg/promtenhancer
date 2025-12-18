@@ -1,0 +1,124 @@
+# UPPGIFT
+Skriv ett LinkedIn-inlägg enligt profilen "warm_provocation".
+
+# STIL-DNA (följ detta noggrant)
+## Warm Provocation-profil
+
+### Kärna
+Avslöja självbedrägeri med värme. Hålla upp spegeln utan att peka finger.
+
+### Signaturdrag
+1. **Avslöjande hook**: Första meningarna ska avslöja, inte informera
+2. **Vardags-hyckleri**: Slack, korridor, möte, "vi tar det sen"
+3. **Listor**: Tankstreck med konkreta beteenden
+4. **Rytmiska pauser**: "Nej." "Nej nej." "Exakt."
+   - En pausrad på egen rad som kommer direkt efter en obekväm observation för att skapa slag i rytmen
+5. **Metaforer**: Konkreta bilder som bär insikt
+6. **Varm CTA**: Självsäker men inte säljig
+
+### Ton
+Provocerande men varm. Rak men mänsklig. Som en klok vän som vågar säga sanningen.
+
+### Undvik
+- Moralpredikan
+- Fingerpekning
+- Överlärar-ton
+- "Du borde" / "Man måste"
+
+# EXEMPEL-FRAGMENT (för inspiration, EJ kopiering)
+## Warm Provocation-profil
+
+### Avslöjande hooks (typ)
+- "Du är inte [X]. Du är [Y] – men på fel sätt."
+- "Du tror att... Det är det inte."
+
+### Rytmiska pauser (typ)
+- "Nej."
+- "Nej nej."
+- "Exakt."
+- En pausrad på egen rad som kommer direkt efter en obekväm observation för att skapa slag i rytmen
+
+### Metaforer (typ)
+- "Det är som att säga att man [X] – men bara när [Y]."
+- "[X] är en PowerPoint, men inte en verklighet."
+
+### Lista-struktur (typ)
+- " – [konkret beteende 1]"
+- " – [konkret beteende 2]"
+- " – [konkret beteende 3]"
+
+### Vardags-hyckleri (typ)
+- "passivt aggressiv blinkning i Slack"
+- "viskar i korridoren men tystnar i mötet"
+- "'vi tar det sen'... i typ sex månader"
+
+
+VIKTIG REGEL:
+Använd examples som inspiration för FORM och KÄNSLA.
+ÅTERANVÄND ALDRIG exakta fraser eller meningar från examples.
+Parafrasera alltid. Skapa nytt.
+Om du känner igen en mening från examples - skriv om den helt.
+
+
+# HÅRDA REGLER FÖR WARM PROVOCATION (OBLIGATORISKT)
+
+## Hook (OBLIGATORISKT - första raden)
+Första raden MÅSTE börja med direkt tilltal "Du" och konfrontera läsaren. Välj EN av dessa strukturer:
+- "Du är inte [X]. Du är [Y]." (t.ex. "Du är inte konflikträdd. Du är konfliktointresserad.")
+- "Du tror att [X]. Det är det inte." (t.ex. "Du tror att du inte är konflikträdd. Det är det inte.")
+- "Du vill ha [X]. Men du gör [Y]." (t.ex. "Du vill ha harmoni. Men du gör passivt aggressiva blinkningar i Slack.")
+
+VIKTIGT: Variera mellan dessa tre strukturer för att undvika monotoni. Alla är konfronterande och avslöjande.
+
+FÖRBJUD i första 3 meningarna:
+- "Vi säger..."
+- "Många..."
+- "Det är viktigt..."
+- "Konflikter är..."
+
+## Ironisk spegel (OBLIGATORISKT block efter listan)
+Efter listan MÅSTE följa ett ironiskt spegel-block. Strukturen är obligatorisk, men formuleringen kan varieras:
+
+OBLIGATORISK STRUKTUR (4 delar):
+1. En rad som pekar ut läsaren (t.ex. "Du vet vem jag menar." / "Du känner igen dig." / "Du vet exakt vad jag menar.")
+2. En negation/ironi (t.ex. "Nej nej. Inte du." / "Inte du förstås." / "Nej, inte du.")
+3. En ironisk rationalisering i citattecken (t.ex. "Du 'tycker bara inte om onödigt drama'." / "Du 'väljer bara dina strider'.")
+4. En bekräftelse (t.ex. "Exakt." / "Precis." / "Just det.")
+
+VIKTIGT: Behåll rytmen och funktionen, men variera formuleringen för att undvika box-ticking.
+
+## Lista (OBLIGATORISKT)
+- 3-5 rader
+- Varje rad MÅSTE börja med exakt "– " (en dash + mellanslag)
+- "- " (vanlig bindestreck) är FÖRBJUDET
+
+## Avslut (OBLIGATORISKT)
+Endast en spegelfråga. FÖRBJUD:
+- "Tänk om vi..."
+- "Det finns ett bättre sätt..."
+- "Jag utmanar dig..."
+- "Låt oss..."
+
+Exempel på spegelfråga: "Vad kostar det att inte säga det?" eller "Vad försöker du slippa genom att kalla det 'onödigt drama'?"
+
+
+# ANVÄNDARENS INPUT
+Ämne: Konflikträdsla på jobbet
+Målgrupp: Yrkesverksamma som undviker jobbiga samtal
+Beskrivning: Skriv ett kort LinkedIn-inlägg om konflikter. Fokusera på hook och spegel, men SKRIV INTE en lista med tankstreck. Använd istället korta stycken. Texten ska få folk att känna igen sig. Använd konkreta exempel men INTE i listform.
+
+# CONSTRAINTS
+- Språk: sv
+- Längd: 600-1200 tecken
+- Inga asterisker (*) för formatering
+- Signatur: /Ann-Christin
+  Ninja-psykolog och den som fortfarande övar på att inte skicka DM när jag borde ta mötet
+
+# KONTROLLER
+- Friktion: 4/5 (hur mycket texten utmanar läsaren)
+- Värme: 3/5 (hur varm/empatisk tonen är)
+- Berättelse: 3/5 (hur mycket personlig historia)
+
+# OUTPUT
+Skriv ENDAST LinkedIn-inlägget. Ingen inledning, ingen förklaring.
+Börja direkt med texten och avsluta med signaturen.
