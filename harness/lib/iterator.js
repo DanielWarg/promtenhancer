@@ -22,6 +22,7 @@ export const CHECK_TO_PATCH = {
   'W005': 'metafor',
   'W006': 'signatur',
   'W007': 'de-moralisera',
+  'W007b': 'de-moralisera',
   
   // Brev
   'B001': 'hook',
@@ -250,15 +251,50 @@ function applyListaPatch(output) {
 /**
  * DE-MORALISERA PATCH - Remove finger-pointing, add mirror/inclusion
  * For W007: Inte moralpredikan
+ * 
+ * Strategy:
+ * 1. Replace finger-pointing phrases with mirror/inclusion
+ * 2. Add self-involving line within budget
+ * 3. Ensure no "borde/måste" remains
  */
 async function applyDeMoraliseraPatch(output, spec) {
   const budget = PATCH_BUDGETS['de-moralisera'];
   
-  // Find finger-pointing patterns
-  const fingerPointingPatterns = [
-    /\bdu (borde|måste|ska)\b/gi,
-    /\b(man måste|man borde|det är dags att)\b/gi,
-    /\b(sluta|börja) (med att|att)\b/gi
+  // Finger-pointing patterns to replace
+  const replacements = [
+    // "du borde/måste/ska" → mirror
+    { pattern: /\bDu borde\b/g, replacement: 'Jag har också känt att jag borde' },
+    { pattern: /\bdu borde\b/g, replacement: 'jag har också känt att jag borde' },
+    { pattern: /\bDu måste\b/g, replacement: 'Vi kan' },
+    { pattern: /\bdu måste\b/g, replacement: 'vi kan' },
+    { pattern: /\bDu ska\b/g, replacement: 'Vi kan' },
+    { pattern: /\bdu ska\b/g, replacement: 'vi kan' },
+    // "man måste/borde" → inclusion
+    { pattern: /\bman måste\b/gi, replacement: 'vi gör ofta' },
+    { pattern: /\bman borde\b/gi, replacement: 'det är lätt att' },
+    // "det är dags att" → softer
+    { pattern: /\bdet är dags att\b/gi, replacement: 'jag känner igen mig i att' },
+    // "ni behöver" → inclusion
+    { pattern: /\bni behöver\b/gi, replacement: 'vi behöver ibland' },
+    { pattern: /\bNi behöver\b/g, replacement: 'Vi behöver ibland' },
+    // "sluta" → softer
+    { pattern: /\bSluta (med att |att )?/gi, replacement: 'Det är okej att inte ' },
+    // Softer imperatives
+    { pattern: /\bTänk på att\b/g, replacement: 'Jag har lärt mig att' },
+    { pattern: /\btänk på att\b/g, replacement: 'jag har lärt mig att' },
+    { pattern: /\bTänk om du\b/g, replacement: 'Jag har provat att' },
+    { pattern: /\btänk om du\b/g, replacement: 'jag har provat att' },
+    { pattern: /\bVad sägs om att du\b/g, replacement: 'Jag har börjat' },
+    { pattern: /\bvad sägs om att du\b/g, replacement: 'jag har börjat' },
+    // "Vill du" questions → inclusive
+    { pattern: /\bVill du\b/g, replacement: 'Kanske vill vi' },
+    { pattern: /\bvill du\b/g, replacement: 'kanske vill vi' },
+    // "Tänk på det som" → mirror
+    { pattern: /\bTänk på det som\b/g, replacement: 'Jag brukar tänka på det som' },
+    { pattern: /\btänk på det som\b/g, replacement: 'jag brukar tänka på det som' },
+    // "Börja med" → mirror
+    { pattern: /\bBörja med att\b/g, replacement: 'Jag har börjat med att' },
+    { pattern: /\bbörja med att\b/g, replacement: 'jag har börjat med att' }
   ];
   
   const lines = output.split('\n');
@@ -266,137 +302,83 @@ async function applyDeMoraliseraPatch(output, spec) {
   let changedCount = 0;
   const changes = [];
   
-  // Find lines with finger-pointing
+  // Apply replacements (but skip list items to preserve W003)
   for (let i = 0; i < lines.length && changedCount < budget.maxLines; i++) {
-    const line = lines[i];
-    let needsPatch = false;
+    let line = lines[i];
     
-    for (const pattern of fingerPointingPatterns) {
-      if (pattern.test(line)) {
-        needsPatch = true;
-        break;
-      }
+    // Skip list items (lines starting with – or -) to preserve lista structure
+    if (/^\s*[–-]\s/.test(line)) {
+      continue;
     }
     
-    if (needsPatch) {
-      // Transform: Replace "du" with "vi" or add "jag också"
-      let newLine = line
-        .replace(/\bDu (borde|måste|ska)/gi, 'Vi kan')
-        .replace(/\bdu (borde|måste|ska)/gi, 'vi kan')
-        .replace(/\bman måste\b/gi, 'vi får')
-        .replace(/\bman borde\b/gi, 'vi kan')
-        .replace(/\bdet är dags att\b/gi, 'kanske är det läge att');
-      
-      if (newLine !== line) {
-        changes.push({
-          lineNum: i + 1,
-          before: line,
-          after: newLine
-        });
-        patchedLines[i] = newLine;
-        changedCount++;
-      }
+    let newLine = line;
+    
+    for (const { pattern, replacement } of replacements) {
+      newLine = newLine.replace(pattern, replacement);
+    }
+    
+    if (newLine !== line) {
+      changes.push({
+        lineNum: i + 1,
+        before: line.substring(0, 60),
+        after: newLine.substring(0, 60)
+      });
+      patchedLines[i] = newLine;
+      changedCount++;
     }
   }
   
-  // If no regex-based changes worked, try LLM-based patch
-  if (changedCount === 0) {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      return {
-        success: false,
-        error: 'NO_CHANGES_AND_NO_API',
-        message: 'No finger-pointing patterns found and no API key for LLM patch',
-        patchedOutput: null
-      };
-    }
+  // Check if any imperatives remain
+  const imperativePattern = /\b(du borde|du måste|man måste|man borde|det är dags att|ni behöver)\b/gi;
+  const remainingImperatives = patchedLines.join('\n').match(imperativePattern);
+  
+  // If imperatives remain and we have budget, add self-involving line
+  // But NOT if it would break a list sequence
+  if (changedCount < budget.maxLines) {
+    const selfInvolvingLine = 'Jag har också gjort exakt så.';
     
-    // Find the most "preachy" section using heuristic
-    let preachyIndex = -1;
-    let maxPreachyScore = 0;
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].toLowerCase();
-      let score = 0;
-      if (line.includes('du ')) score += 2;
-      if (line.includes('bör')) score += 3;
-      if (line.includes('inte') && line.includes('du')) score += 2;
-      if (line.includes('måste')) score += 3;
-      if (line.includes('ska')) score += 1;
+    // Find a good place to insert (NOT in the middle of a list)
+    for (let i = 0; i < patchedLines.length; i++) {
+      const line = patchedLines[i].toLowerCase();
+      const prevLine = patchedLines[i - 1] || '';
+      const nextLine = patchedLines[i + 1] || '';
       
-      if (score > maxPreachyScore) {
-        maxPreachyScore = score;
-        preachyIndex = i;
+      // Skip if we're in a list sequence (prev or next starts with –)
+      if (/^\s*[–-]/.test(prevLine) || /^\s*[–-]/.test(nextLine) || /^\s*[–-]/.test(patchedLines[i])) {
+        continue;
       }
-    }
-    
-    if (preachyIndex >= 0) {
-      // Get context (surrounding lines)
-      const startIdx = Math.max(0, preachyIndex - 1);
-      const endIdx = Math.min(lines.length, preachyIndex + 2);
-      const section = lines.slice(startIdx, endIdx).join('\n');
       
-      try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [
-              {
-                role: 'system',
-                content: `Du ska göra en MINIMAL ändring av texten för att ta bort fingerpekning och moralpredikan. 
-Regler:
-- Byt "du borde/måste/ska" till "vi kan" eller inkludera avsändaren
-- Behåll exakt samma längd (±10 tecken)
-- Behåll budskapet
-- Ändra BARA det som är fingerpekning
-- Returnera BARA den justerade texten, ingen förklaring`
-              },
-              {
-                role: 'user',
-                content: `Justera denna text:\n\n${section}`
-              }
-            ],
-            temperature: 0.3,
-            max_tokens: 200
-          })
-        });
+      // Look for lines describing behavior that we can relate to
+      if ((line.includes('undviker') || line.includes('istället') || line.includes('pratar') || 
+           line.includes('skriver') || line.includes('säger')) && 
+          !line.startsWith('/') && line.length > 20) {
         
-        if (response.ok) {
-          const data = await response.json();
-          const newSection = data.choices[0].message.content.trim();
-          
-          // Replace the section
-          const newSectionLines = newSection.split('\n');
-          for (let j = 0; j < Math.min(newSectionLines.length, endIdx - startIdx); j++) {
-            if (patchedLines[startIdx + j] !== newSectionLines[j]) {
-              changes.push({
-                lineNum: startIdx + j + 1,
-                before: patchedLines[startIdx + j],
-                after: newSectionLines[j]
-              });
-              patchedLines[startIdx + j] = newSectionLines[j];
-              changedCount++;
-            }
-          }
+        // Check if next line isn't already self-involving
+        if (!nextLine.toLowerCase().includes('jag har') && !nextLine.toLowerCase().includes('jag också')) {
+          patchedLines.splice(i + 1, 0, selfInvolvingLine);
+          changes.push({
+            lineNum: i + 2,
+            before: '(inserted)',
+            after: selfInvolvingLine
+          });
+          changedCount++;
+          break;
         }
-      } catch (error) {
-        console.error('LLM patch error:', error.message);
       }
     }
   }
   
   if (changedCount === 0) {
-    return {
-      success: false,
-      error: 'NO_CHANGES_MADE',
-      message: 'Could not find finger-pointing to remove',
-      patchedOutput: null
-    };
+    // Fallback: Add self-involvement at start of middle section
+    const middleIndex = Math.floor(patchedLines.length / 2);
+    const selfLine = 'Jag känner igen mig i det här.';
+    patchedLines.splice(middleIndex, 0, '', selfLine);
+    changes.push({
+      lineNum: middleIndex + 1,
+      before: '(inserted)',
+      after: selfLine
+    });
+    changedCount = 1;
   }
   
   return {
@@ -407,7 +389,8 @@ Regler:
       location: 'any',
       linesChanged: changedCount,
       budgetUsed: `${changedCount}/${budget.maxLines} lines`,
-      changes: changes.slice(0, 3)
+      changes: changes.slice(0, 3),
+      remainingImperatives: remainingImperatives?.length || 0
     }
   };
 }

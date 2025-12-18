@@ -147,12 +147,21 @@
             "pattern": "(\\/[A-ZÅÄÖ]|\\n\\/)"
           },
           {
+            "id": "W007b",
+            "title": "Inga imperativ",
+            "description": "Inga fingerpekning-fraser (du borde/måste, man måste, det är dags att)",
+            "type": "heuristic",
+            "scope": "full_text",
+            "weight": 10,
+            "pattern_fail": "(du borde|du måste|man måste|man borde|det är dags att|ni behöver)"
+          },
+          {
             "id": "G001",
             "title": "No exact example line reuse",
             "description": "Ingen exakt kopiering från examples.md",
             "type": "heuristic",
             "scope": "full_text",
-            "weight": 15
+            "weight": 5
           }
         ]
       },

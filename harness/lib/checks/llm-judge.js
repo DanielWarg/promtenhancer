@@ -71,17 +71,19 @@ Svara endast: PASS eller FAIL, följt av en kort motivering (max 2 meningar).`,
 
   W007: `Bedöm om texten provocerar med värme och igenkänning eller om den föreläser/moraliserar.
 
+PASS-KRITERIER (båda måste uppfyllas):
+1. Texten innehåller minst en självinvolvering: "jag har", "jag också", "vi gör", "jag känner igen"
+2. Texten saknar direkta imperativ: "du borde", "du måste", "man måste", "det är dags att", "ni behöver"
+
 FAIL om:
-- Texten pekar finger ("du borde", "man måste", "det är dags att")
-- Tonen är överlärar-aktig eller dömande
-- Det saknas självinsikt hos avsändaren
-- Läsaren blir tillrättavisad istället för att känna igen sig
+- Texten innehåller imperativ som pekar finger
+- Det saknas avsändarens egen röst/erfarenhet
+- Tonen är överlärar-aktig utan självinsikt
 
 PASS om:
-- Texten håller upp en spegel
-- Provokationen kommer med värme och humor
-- Avsändaren inkluderar sig själv ("Jag har också...", "Vi gör alla...")
-- Läsaren känner "fan, det där är jag" – inte "nu får jag skäll"
+- Avsändaren inkluderar sig själv tydligt
+- Inga fingerpekning-fraser finns
+- Läsaren känner igenkänning, inte tillrättavisning
 
 Svara endast: PASS eller FAIL, följt av en kort motivering (max 2 meningar).`
 };

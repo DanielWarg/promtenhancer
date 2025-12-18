@@ -1,0 +1,109 @@
+{
+  "version": "v1",
+  "timestamp": "2025-12-18T16:03:04.987Z",
+  "profile": "warm_provocation",
+  "scores": {
+    "compliance_score": 90,
+    "quality_score": 70,
+    "total_score": 82,
+    "formula": "0.6 * compliance + 0.4 * quality"
+  },
+  "targets": {
+    "compliance_target": 95,
+    "quality_target": 85,
+    "compliance_met": false,
+    "quality_met": false
+  },
+  "per_check": [
+    {
+      "id": "G001",
+      "title": "No exact example line reuse",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 5,
+      "pass": true,
+      "notes": "No cloning detected"
+    },
+    {
+      "id": "W001a",
+      "title": "Hook inom första meningar",
+      "type": "heuristic",
+      "scope": "first_screen",
+      "weight": 15,
+      "pass": true,
+      "notes": "Hook has direct address and contrast"
+    },
+    {
+      "id": "W007b",
+      "title": "Inga imperativ",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 10,
+      "pass": false,
+      "notes": "Found 1 imperative(s): Tänk på det som"
+    },
+    {
+      "id": "W001",
+      "title": "Avslöjande hook",
+      "type": "llm_judge",
+      "scope": "first_screen",
+      "weight": 40,
+      "pass": true,
+      "notes": ". Öppningen konfronterar läsaren med en motsägelse mellan deras självbild och deras beteende, vilket skapar en känsla av att bli sedd snarare än informerad. Den direkta tilltalet och de specifika exemplen bidrar till att avslöja självbedrägeri."
+    },
+    {
+      "id": "W005",
+      "title": "Metafor som bär insikt",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": true,
+      "notes": ". Texten innehåller flera konkreta och visuella metaforer, såsom \"vi lever i en bubbla av tystnad\" och \"olösta konflikter växer som ogräs i en trädgård\", som bär insikter om kommunikation och konflikthantering. Dessa metaforer skapar igenkänning och stannar kvar hos läsaren."
+    },
+    {
+      "id": "W007",
+      "title": "Inte moralpredikan",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": false,
+      "notes": ". Texten innehåller flera imperativ och pekar finger, vilket ger en ton av moraliserande istället för igenkänning. Det saknas också en tydlig självinvolvering från avsändaren."
+    },
+    {
+      "id": "W002",
+      "title": "Vardagsmiljö",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"Slack\""
+    },
+    {
+      "id": "W003",
+      "title": "Listsekvens",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"– Valt att undvika en jobbigt samtal genom att skicka ett passivt aggressivt meddelande i Slack?  \n– Viska i korridoren om en kollega istället för att ta det i mötet?  \n–\""
+    },
+    {
+      "id": "W004",
+      "title": "Rytmisk paus",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\nNej.\""
+    },
+    {
+      "id": "W006",
+      "title": "Signaturblock",
+      "type": "regex",
+      "scope": "last_screen",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\n/\""
+    }
+  ]
+}

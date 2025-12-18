@@ -174,6 +174,75 @@ function checkG001(text, examplesContent) {
 }
 
 /**
+ * W007b - No imperatives (heuristic pre-check for W007)
+ * Fails if text contains finger-pointing phrases
+ */
+function checkW007b(text) {
+  const imperativePatterns = [
+    /\bdu borde\b/gi,
+    /\bdu måste\b/gi,
+    /\bman måste\b/gi,
+    /\bman borde\b/gi,
+    /\bdet är dags att\b/gi,
+    /\bni behöver\b/gi,
+    // Additional softer imperatives
+    /\btänk om du\b/gi,
+    /\bvad sägs om att du\b/gi,
+    /\bprova att\b/gi,
+    /\bförsök att\b/gi,
+    /\bvill du\b/gi,
+    /\btänk på det som\b/gi,
+    /\bbörja med att\b/gi
+  ];
+  
+  const selfInvolvementPatterns = [
+    /\bjag har\b/gi,
+    /\bjag också\b/gi,
+    /\bjag känner igen\b/gi,
+    /\bvi gör\b/gi,
+    /\bvi har\b/gi,
+    /\bjag vet\b/gi
+  ];
+  
+  // Check for imperatives
+  const foundImperatives = [];
+  for (const pattern of imperativePatterns) {
+    const matches = text.match(pattern);
+    if (matches) {
+      foundImperatives.push(...matches);
+    }
+  }
+  
+  // Check for self-involvement
+  let hasSelfInvolvement = false;
+  for (const pattern of selfInvolvementPatterns) {
+    if (pattern.test(text)) {
+      hasSelfInvolvement = true;
+      break;
+    }
+  }
+  
+  if (foundImperatives.length > 0) {
+    return {
+      pass: false,
+      notes: `Found ${foundImperatives.length} imperative(s): ${foundImperatives.slice(0, 3).join(', ')}`
+    };
+  }
+  
+  if (!hasSelfInvolvement) {
+    return {
+      pass: false,
+      notes: 'No self-involvement found (jag/vi). Text may feel preachy.'
+    };
+  }
+  
+  return {
+    pass: true,
+    notes: 'No imperatives found, has self-involvement'
+  };
+}
+
+/**
  * Run a heuristic check
  */
 export function runHeuristicCheck(text, check, context = {}) {
@@ -190,6 +259,8 @@ export function runHeuristicCheck(text, check, context = {}) {
       return checkB007(text, check);
     case 'W001a':
       return checkW001a(text);
+    case 'W007b':
+      return checkW007b(text);
     case 'G001':
       return checkG001(text, context.examplesContent || '');
     default:

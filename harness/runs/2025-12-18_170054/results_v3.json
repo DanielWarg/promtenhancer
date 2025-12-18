@@ -1,0 +1,109 @@
+{
+  "version": "v3",
+  "timestamp": "2025-12-18T16:01:32.751Z",
+  "profile": "warm_provocation",
+  "scores": {
+    "compliance_score": 80,
+    "quality_score": 70,
+    "total_score": 76,
+    "formula": "0.6 * compliance + 0.4 * quality"
+  },
+  "targets": {
+    "compliance_target": 95,
+    "quality_target": 85,
+    "compliance_met": false,
+    "quality_met": false
+  },
+  "per_check": [
+    {
+      "id": "G001",
+      "title": "No exact example line reuse",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 5,
+      "pass": true,
+      "notes": "No cloning detected"
+    },
+    {
+      "id": "W001a",
+      "title": "Hook inom första meningar",
+      "type": "heuristic",
+      "scope": "first_screen",
+      "weight": 15,
+      "pass": true,
+      "notes": "Hook has direct address and contrast"
+    },
+    {
+      "id": "W007b",
+      "title": "Inga imperativ",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 10,
+      "pass": true,
+      "notes": "No imperatives found, has self-involvement"
+    },
+    {
+      "id": "W001",
+      "title": "Avslöjande hook",
+      "type": "llm_judge",
+      "scope": "first_screen",
+      "weight": 40,
+      "pass": true,
+      "notes": ". Textens öppning konfronterar läsaren med en motsägelse mellan deras självbild och deras beteende, vilket skapar en känsla av att bli sedd snarare än informerad. Det finns en tydlig friktion mellan vad läsaren säger och vad de faktiskt gör."
+    },
+    {
+      "id": "W005",
+      "title": "Metafor som bär insikt",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": true,
+      "notes": ". Texten innehåller flera konkreta och visuella metaforer, som \"konflikter är som bergstoppar\" och \"tänk på det som att rensa ogräs i trädgården\", som bär insikter om kommunikation och förändring. Dessa metaforer skapar igenkänning och stannar kvar hos läsaren."
+    },
+    {
+      "id": "W007",
+      "title": "Inte moralpredikan",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": false,
+      "notes": "Texten innehåller imperativ som \"Vill du förändra kulturen på din arbetsplats?\" och \"Tänk på det som att rensa ogräs\", vilket pekar finger. Dessutom saknas en tydlig självinvolvering i form av personliga erfarenheter utöver den avslutande meningen."
+    },
+    {
+      "id": "W002",
+      "title": "Vardagsmiljö",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"möte\""
+    },
+    {
+      "id": "W003",
+      "title": "Listsekvens",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": false,
+      "notes": "Pattern not found: –.*\\n.*–.*\\n.*–"
+    },
+    {
+      "id": "W004",
+      "title": "Rytmisk paus",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\nNej.\""
+    },
+    {
+      "id": "W006",
+      "title": "Signaturblock",
+      "type": "regex",
+      "scope": "last_screen",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\n/\""
+    }
+  ]
+}
