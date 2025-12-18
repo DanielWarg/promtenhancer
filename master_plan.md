@@ -169,6 +169,12 @@ function calculateScores(checkResults, profile) {
 }
 ```
 
+### Patch-Only Checks
+
+**VIKTIGT:** Checks med `weight: 0` eller `patch_only: true` påverkar **INTE** scoring (varken compliance_score eller quality_score), men kan fortfarande trigga patch-routing. Detta förhindrar att tonalitetsregler (som W007c) "vinner compliance" genom att vara form-checks när de egentligen är quality-guards.
+
+Exempel: W007c (subtila föreläsarfraser) är en patch-only guard som triggar `de-moralisera` patch men påverkar inte compliance_score.
+
 ### Default Targets
 
 ```javascript

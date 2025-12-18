@@ -109,6 +109,11 @@ function buildResultsJson(checkResults, scores, targets, profile, version = 'v1'
       notes: result.notes
     };
     
+    // Include patch_only flag if present (for patch-only guards that don't affect scoring)
+    if (result.check?.patch_only || result.check?.weight === 0) {
+      checkResult.patch_only = true;
+    }
+    
     // Include score + reasons for score-based checks (W007, etc.)
     if (result.score !== undefined) {
       checkResult.score = result.score;
