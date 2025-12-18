@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  regression-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run regression tests
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          REFLEKTERA_MODEL_GENERATION: ${{ secrets.REFLEKTERA_MODEL_GENERATION || 'gpt-5.1' }}
+          REFLEKTERA_MODEL_JUDGE: ${{ secrets.REFLEKTERA_MODEL_JUDGE || 'gpt-5.1' }}
+          REFLEKTERA_MODEL_PATCH: ${{ secrets.REFLEKTERA_MODEL_PATCH || 'gpt-5.1' }}
+        run: npm run harness:test:regression
+
