@@ -93,7 +93,7 @@ function buildResultsJson(checkResults, scores, targets, profile, version = 'v1'
   const perCheck = [];
   
   for (const [id, result] of Object.entries(checkResults)) {
-    perCheck.push({
+    const checkResult = {
       id,
       title: result.check?.title || id,
       type: result.check?.type || 'unknown',
@@ -101,7 +101,18 @@ function buildResultsJson(checkResults, scores, targets, profile, version = 'v1'
       weight: result.check?.weight || 0,
       pass: result.pass,
       notes: result.notes
-    });
+    };
+    
+    // Include score + reasons for score-based checks (W007, etc.)
+    if (result.score !== undefined) {
+      checkResult.score = result.score;
+      checkResult.pass_threshold = result.check?.pass_threshold || 70;
+    }
+    if (result.reasons !== undefined) {
+      checkResult.reasons = result.reasons;
+    }
+    
+    perCheck.push(checkResult);
   }
   
   // Sort by type then id

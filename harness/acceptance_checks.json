@@ -147,12 +147,20 @@
             "pattern": "(\\/[A-ZÅÄÖ]|\\n\\/)"
           },
           {
+            "id": "W007b",
+            "title": "Inga fingerpekning-fraser",
+            "description": "Guard: inga explicita 'du borde/måste/ska'-fraser",
+            "type": "heuristic",
+            "scope": "full_text",
+            "weight": 10
+          },
+          {
             "id": "G001",
             "title": "No exact example line reuse",
             "description": "Ingen exakt kopiering från examples.md",
             "type": "heuristic",
             "scope": "full_text",
-            "weight": 15
+            "weight": 5
           }
         ]
       },
@@ -177,11 +185,13 @@
           },
           {
             "id": "W007",
-            "title": "Inte moralpredikan",
-            "description": "Värme och igenkänning, inte föreläsande ton",
+            "title": "Inte moralpredikan (ton)",
+            "description": "Värme och igenkänning, inte föreläsande ton - bedöms på ton, inte fraser",
             "type": "llm_judge",
             "scope": "full_text",
-            "weight": 30
+            "weight": 30,
+            "score_based": true,
+            "pass_threshold": 70
           }
         ]
       }

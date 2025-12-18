@@ -1,0 +1,116 @@
+{
+  "version": "v1",
+  "timestamp": "2025-12-18T17:26:52.507Z",
+  "profile": "warm_provocation",
+  "scores": {
+    "compliance_score": 65,
+    "quality_score": 70,
+    "total_score": 67,
+    "formula": "0.6 * compliance + 0.4 * quality"
+  },
+  "targets": {
+    "compliance_target": 95,
+    "quality_target": 85,
+    "compliance_met": false,
+    "quality_met": false
+  },
+  "per_check": [
+    {
+      "id": "G001",
+      "title": "No exact example line reuse",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 5,
+      "pass": true,
+      "notes": "No cloning detected"
+    },
+    {
+      "id": "W001a",
+      "title": "Hook inom första meningar",
+      "type": "heuristic",
+      "scope": "first_screen",
+      "weight": 15,
+      "pass": false,
+      "notes": "First 3 sentences lack direct address (du/ni)"
+    },
+    {
+      "id": "W007b",
+      "title": "Inga fingerpekning-fraser",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 10,
+      "pass": true,
+      "notes": "Inga explicita fingerpekning-fraser hittade"
+    },
+    {
+      "id": "W001",
+      "title": "Avslöjande hook",
+      "type": "llm_judge",
+      "scope": "first_screen",
+      "weight": 40,
+      "pass": true,
+      "notes": ". Textens öppning konfronterar läsaren med en insikt om självbedrägeri kring konflikträdsla, vilket skapar en känsla av att bli sedd snarare än informerad. Denna kontrast mellan påståendet och verkligheten skapar friktion och engagemang."
+    },
+    {
+      "id": "W005",
+      "title": "Metafor som bär insikt",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": true,
+      "notes": ". Texten innehåller flera konkreta och visuella metaforer som \"att sätta ett plåster på en spricka i väggen\" och \"konflikter är som stormar\", vilka bär insikter om att undvika problem och vikten av att hantera konflikter. Dessa metaforer skapar igenkänning och stannar kvar hos läsaren."
+    },
+    {
+      "id": "W007",
+      "title": "Inte moralpredikan (ton)",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": false,
+      "notes": "Score: 65/100 (threshold: 70). Blandad ton med inslag av igenkänning; Visar på egna svårigheter vilket skapar en spegel; Innehåller vissa föreläsande inslag men med en uppmuntrande avslutning",
+      "score": 65,
+      "pass_threshold": 70,
+      "reasons": [
+        "Blandad ton med inslag av igenkänning",
+        "Visar på egna svårigheter vilket skapar en spegel",
+        "Innehåller vissa föreläsande inslag men med en uppmuntrande avslutning"
+      ]
+    },
+    {
+      "id": "W002",
+      "title": "Vardagsmiljö",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"Slack\""
+    },
+    {
+      "id": "W003",
+      "title": "Listsekvens",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": false,
+      "notes": "Pattern not found: –.*\\n.*–.*\\n.*–"
+    },
+    {
+      "id": "W004",
+      "title": "Rytmisk paus",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\nNej.\""
+    },
+    {
+      "id": "W006",
+      "title": "Signaturblock",
+      "type": "regex",
+      "scope": "last_screen",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\n/\""
+    }
+  ]
+}

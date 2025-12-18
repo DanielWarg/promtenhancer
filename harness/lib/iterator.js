@@ -22,6 +22,7 @@ export const CHECK_TO_PATCH = {
   'W005': 'metafor',
   'W006': 'signatur',
   'W007': 'de-moralisera',
+  'W007b': 'de-moralisera',  // Guard - samma patch som W007
   
   // Brev
   'B001': 'hook',

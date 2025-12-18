@@ -174,6 +174,60 @@ function checkG001(text, examplesContent) {
 }
 
 /**
+ * W007b - Guard: Inga explicita fingerpekning-fraser
+ * Fångar "du borde/måste/ska" så att W007 (llm_judge) kan fokusera på ton
+ */
+function checkW007b(text) {
+  // Mönster för explicit fingerpekning
+  const fingerPointingPatterns = [
+    { pattern: /\bdu (borde|måste|ska)\b/gi, type: 'direct' },
+    { pattern: /\bni (borde|måste|ska)\b/gi, type: 'direct' },
+    { pattern: /\bman måste\b/gi, type: 'generic' },
+    { pattern: /\bman borde\b/gi, type: 'generic' },
+    { pattern: /\bdet är dags att\b/gi, type: 'imperative' },
+    { pattern: /\b(sluta|börja) (med att|att)\b/gi, type: 'imperative' }
+  ];
+  
+  const violations = [];
+  
+  for (const { pattern, type } of fingerPointingPatterns) {
+    const matches = text.match(pattern);
+    if (matches) {
+      violations.push(...matches.map(m => ({ phrase: m.toLowerCase(), type })));
+    }
+  }
+  
+  if (violations.length === 0) {
+    return {
+      pass: true,
+      notes: 'Inga explicita fingerpekning-fraser hittade'
+    };
+  }
+  
+  // Max 1 mjuk fingerpekning tillåts
+  const directViolations = violations.filter(v => v.type === 'direct');
+  if (directViolations.length > 0) {
+    return {
+      pass: false,
+      notes: `Hittade ${violations.length} fingerpekning: ${violations.map(v => `"${v.phrase}"`).join(', ')}`
+    };
+  }
+  
+  // Tillåt max 1 mjuk (generic/imperative) fingerpekning
+  if (violations.length <= 1) {
+    return {
+      pass: true,
+      notes: `1 mjuk fingerpekning tillåts: "${violations[0].phrase}"`
+    };
+  }
+  
+  return {
+    pass: false,
+    notes: `Hittade ${violations.length} fingerpekning-fraser: ${violations.map(v => `"${v.phrase}"`).join(', ')}`
+  };
+}
+
+/**
  * Run a heuristic check
  */
 export function runHeuristicCheck(text, check, context = {}) {
@@ -190,6 +244,8 @@ export function runHeuristicCheck(text, check, context = {}) {
       return checkB007(text, check);
     case 'W001a':
       return checkW001a(text);
+    case 'W007b':
+      return checkW007b(text);
     case 'G001':
       return checkG001(text, context.examplesContent || '');
     default:
