@@ -8,7 +8,8 @@
     "dev:server": "node server/index.js",
     "dev:all": "concurrently \"npm run dev:server\" \"npm run dev\"",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:reverse": "node test-reverse-engineering.js"
   },
   "dependencies": {
     "react": "^19.2.3",
