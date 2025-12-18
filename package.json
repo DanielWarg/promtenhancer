@@ -9,7 +9,11 @@
     "dev:all": "concurrently \"npm run dev:server\" \"npm run dev\"",
     "build": "vite build",
     "preview": "vite preview",
-    "test:reverse": "node test-reverse-engineering.js"
+    "harness": "node harness/runner.js",
+    "harness:brev": "node harness/runner.js run --spec ./harness/specs/brev_smallbarn.json",
+    "harness:warm": "node harness/runner.js run --spec ./harness/specs/warm_provocation_konflikter.json",
+    "harness:eval": "node harness/runner.js eval --run ./harness/runs/latest",
+    "harness:compare": "node harness/runner.js compare --run ./harness/runs/latest"
   },
   "dependencies": {
     "react": "^19.2.3",

@@ -1,0 +1,100 @@
+{
+  "version": "v1",
+  "timestamp": "2025-12-18T15:46:04.768Z",
+  "profile": "warm_provocation",
+  "scores": {
+    "compliance_score": 100,
+    "quality_score": 70,
+    "total_score": 88,
+    "formula": "0.6 * compliance + 0.4 * quality"
+  },
+  "targets": {
+    "compliance_target": 95,
+    "quality_target": 85,
+    "compliance_met": true,
+    "quality_met": false
+  },
+  "per_check": [
+    {
+      "id": "G001",
+      "title": "No exact example line reuse",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 15,
+      "pass": true,
+      "notes": "No cloning detected"
+    },
+    {
+      "id": "W001a",
+      "title": "Hook inom första meningar",
+      "type": "heuristic",
+      "scope": "first_screen",
+      "weight": 15,
+      "pass": true,
+      "notes": "Hook has direct address and contrast"
+    },
+    {
+      "id": "W001",
+      "title": "Avslöjande hook",
+      "type": "llm_judge",
+      "scope": "first_screen",
+      "weight": 40,
+      "pass": true,
+      "notes": ". Textens öppning konfronterar läsaren med en insikt om deras beteende, vilket skapar en känsla av att bli sedd snarare än informerad. Det finns en tydlig kontrast mellan vad läsaren tror och vad de faktiskt gör, vilket skapar friktion."
+    },
+    {
+      "id": "W005",
+      "title": "Metafor som bär insikt",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": true,
+      "notes": ". Texten innehåller flera konkreta och visuella metaforer, som \"stå inför en eld och hälla bensin på den\", vilket bär en insikt om hur undvikande beteende förvärrar konflikter. Metaforerna skapar igenkänning och stannar kvar genom att koppla känslor till konkreta bilder."
+    },
+    {
+      "id": "W007",
+      "title": "Inte moralpredikan",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": false,
+      "notes": ". Texten pekar finger genom att uppmana läsaren att \"ta det där samtalet\" och innehåller en ton som kan uppfattas som dömande. Det saknas självinsikt och humor, vilket gör att läsaren kan känna sig tillrättavisad snarare än igenkänd."
+    },
+    {
+      "id": "W002",
+      "title": "Vardagsmiljö",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"Slack\""
+    },
+    {
+      "id": "W003",
+      "title": "Listsekvens",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"– Valt att hellre sända ett passivt aggressivt meddelande i Slack än att ta det jobbiga samtalet?  \n– Viskat om problemet i korridoren istället för att konfrontera det?  \n– Tanken på att \"vi tar det sen\" blivit din bästa vän –\""
+    },
+    {
+      "id": "W004",
+      "title": "Rytmisk paus",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\nNej.\""
+    },
+    {
+      "id": "W006",
+      "title": "Signaturblock",
+      "type": "regex",
+      "scope": "last_screen",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\n/\""
+    }
+  ]
+}

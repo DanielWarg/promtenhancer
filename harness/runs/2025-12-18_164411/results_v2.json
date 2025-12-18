@@ -1,0 +1,109 @@
+{
+  "version": "v2",
+  "timestamp": "2025-12-18T15:44:30.985Z",
+  "profile": "brev",
+  "scores": {
+    "compliance_score": 100,
+    "quality_score": 100,
+    "total_score": 100,
+    "formula": "0.6 * compliance + 0.4 * quality"
+  },
+  "targets": {
+    "compliance_target": 95,
+    "quality_target": 85,
+    "compliance_met": true,
+    "quality_met": true
+  },
+  "per_check": [
+    {
+      "id": "B001a",
+      "title": "Emotionell närhet i öppningen",
+      "type": "heuristic",
+      "scope": "first_screen",
+      "weight": 12,
+      "pass": true,
+      "notes": "Opening has emotional closeness"
+    },
+    {
+      "id": "B002",
+      "title": "Mikrodetaljer",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 18,
+      "pass": true,
+      "notes": "Found 4 micro-details: morgon, termometer, kall"
+    },
+    {
+      "id": "B003",
+      "title": "Whitespace",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 16,
+      "pass": true,
+      "notes": "Line breaks: 15/8, Lonely sentences: 8/3"
+    },
+    {
+      "id": "B007",
+      "title": "Längd",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 6,
+      "pass": true,
+      "notes": "Length: 1147 chars (target: 800-1200)"
+    },
+    {
+      "id": "G001",
+      "title": "No exact example line reuse",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 6,
+      "pass": true,
+      "notes": "No cloning detected"
+    },
+    {
+      "id": "B005",
+      "title": "Reframing",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 55,
+      "pass": true,
+      "notes": ". Texten visar en tydlig rörelse från skuld och stress till acceptans av mänsklighet, där läsaren får tillåtelse att prioritera det som verkligen betyder något. Reframingen känns äkta och ger en känsla av gemenskap utan att bli peppig."
+    },
+    {
+      "id": "B008",
+      "title": "Ingen pepp/klyscha",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 45,
+      "pass": true,
+      "notes": ". Texten innehåller konkreta detaljer om en specifik situation och känslor, vilket ger en genuin och mänsklig ton. Den tillåter komplexitet och reflektion utan att falla i klyschor eller tomma uppmaningar."
+    },
+    {
+      "id": "B001",
+      "title": "Direct address",
+      "type": "regex",
+      "scope": "first_screen",
+      "weight": 18,
+      "pass": true,
+      "notes": "Found: \"Du som\""
+    },
+    {
+      "id": "B004",
+      "title": "Sårbar auktoritet",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 14,
+      "pass": true,
+      "notes": "Found: \"Jag minns\""
+    },
+    {
+      "id": "B006",
+      "title": "Mjuk slutsats",
+      "type": "regex",
+      "scope": "last_screen",
+      "weight": 10,
+      "pass": true,
+      "notes": "No forbidden patterns found"
+    }
+  ]
+}

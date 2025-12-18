@@ -1,0 +1,191 @@
+{
+  "version": "1.1",
+  "profiles": {
+    "brev": {
+      "compliance": {
+        "total_weight": 100,
+        "checks": [
+          {
+            "id": "B001",
+            "title": "Direct address",
+            "description": "Direct address ('Du som...', 'Till dig som...') i första 2 raderna",
+            "type": "regex",
+            "scope": "first_screen",
+            "weight": 18,
+            "pattern": "(Du som|Till dig som|Du som är|Till dig)"
+          },
+          {
+            "id": "B001a",
+            "title": "Emotionell närhet i öppningen",
+            "description": "Emotionell närhet i öppningen (inte tes-intro)",
+            "type": "heuristic",
+            "scope": "first_screen",
+            "weight": 12
+          },
+          {
+            "id": "B002",
+            "title": "Mikrodetaljer",
+            "description": "2-3 sensoriska mikrodetaljer (tid/plats/kropp/föremål)",
+            "type": "heuristic",
+            "scope": "full_text",
+            "weight": 18
+          },
+          {
+            "id": "B003",
+            "title": "Whitespace",
+            "description": "Whitespace: 8+ radbrytningar, 3+ ensamma meningar",
+            "type": "heuristic",
+            "scope": "full_text",
+            "weight": 16
+          },
+          {
+            "id": "B004",
+            "title": "Sårbar auktoritet",
+            "description": "Sårbar auktoritet ('Jag har varit där/minns')",
+            "type": "regex",
+            "scope": "full_text",
+            "weight": 14,
+            "pattern": "(Jag har varit|Jag minns|Jag har känt|Jag vet hur)"
+          },
+          {
+            "id": "B006",
+            "title": "Mjuk slutsats",
+            "description": "Mjuk slutsats: inga hårda CTA:s i sista raderna",
+            "type": "regex",
+            "scope": "last_screen",
+            "weight": 10,
+            "pattern_fail": "(Boka nu|Klicka här|Köp|Anmäl dig|Registrera|Swisha|Ring mig)"
+          },
+          {
+            "id": "B007",
+            "title": "Längd",
+            "description": "Längd: 800-1200 tecken",
+            "type": "heuristic",
+            "scope": "full_text",
+            "weight": 6,
+            "min_chars": 800,
+            "max_chars": 1200
+          },
+          {
+            "id": "G001",
+            "title": "No exact example line reuse",
+            "description": "Ingen exakt kopiering från examples.md",
+            "type": "heuristic",
+            "scope": "full_text",
+            "weight": 6
+          }
+        ]
+      },
+      "quality": {
+        "total_weight": 100,
+        "checks": [
+          {
+            "id": "B005",
+            "title": "Reframing",
+            "description": "Reframing: skuld/stress → mänsklighet/tillåtelse",
+            "type": "llm_judge",
+            "scope": "full_text",
+            "weight": 55
+          },
+          {
+            "id": "B008",
+            "title": "Ingen pepp/klyscha",
+            "description": "Texten känns som äkta reflektion, inte generisk inspirationspost",
+            "type": "llm_judge",
+            "scope": "full_text",
+            "weight": 45
+          }
+        ]
+      }
+    },
+    "warm_provocation": {
+      "compliance": {
+        "total_weight": 100,
+        "checks": [
+          {
+            "id": "W001a",
+            "title": "Hook inom första meningar",
+            "description": "Hook inom första 2-3 meningar (direkt tilltal + kontrast)",
+            "type": "heuristic",
+            "scope": "first_screen",
+            "weight": 15
+          },
+          {
+            "id": "W002",
+            "title": "Vardagsmiljö",
+            "description": "Vardagsmiljö (Slack/Teams/korridor/möte)",
+            "type": "regex",
+            "scope": "full_text",
+            "weight": 20,
+            "pattern": "(Slack|Teams|korridor|möte|mötet|mail|mejl|DM|chatten)"
+          },
+          {
+            "id": "W003",
+            "title": "Listsekvens",
+            "description": "Listsekvens med tankstreck (3-5 rader)",
+            "type": "regex",
+            "scope": "full_text",
+            "weight": 20,
+            "pattern": "–.*\\n.*–.*\\n.*–"
+          },
+          {
+            "id": "W004",
+            "title": "Rytmisk paus",
+            "description": "Rytmisk paus ('Nej.' / 'Nej nej.' / 'Exakt.')",
+            "type": "regex",
+            "scope": "full_text",
+            "weight": 15,
+            "pattern": "(^|\\n)(Nej\\.|Nej nej\\.|Exakt\\.|Precis\\.|Eller\\?)"
+          },
+          {
+            "id": "W006",
+            "title": "Signaturblock",
+            "description": "Signaturblock i slutet",
+            "type": "regex",
+            "scope": "last_screen",
+            "weight": 15,
+            "pattern": "(\\/[A-ZÅÄÖ]|\\n\\/)"
+          },
+          {
+            "id": "G001",
+            "title": "No exact example line reuse",
+            "description": "Ingen exakt kopiering från examples.md",
+            "type": "heuristic",
+            "scope": "full_text",
+            "weight": 15
+          }
+        ]
+      },
+      "quality": {
+        "total_weight": 100,
+        "checks": [
+          {
+            "id": "W001",
+            "title": "Avslöjande hook",
+            "description": "Avslöjande hook (självbedrägeri, inte påstående)",
+            "type": "llm_judge",
+            "scope": "first_screen",
+            "weight": 40
+          },
+          {
+            "id": "W005",
+            "title": "Metafor som bär insikt",
+            "description": "Metafor som bär insikt (konkret, inte dekoration)",
+            "type": "llm_judge",
+            "scope": "full_text",
+            "weight": 30
+          },
+          {
+            "id": "W007",
+            "title": "Inte moralpredikan",
+            "description": "Värme och igenkänning, inte föreläsande ton",
+            "type": "llm_judge",
+            "scope": "full_text",
+            "weight": 30
+          }
+        ]
+      }
+    }
+  }
+}
+
