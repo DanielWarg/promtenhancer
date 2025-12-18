@@ -1,0 +1,116 @@
+{
+  "version": "v1",
+  "timestamp": "2025-12-18T18:20:01.659Z",
+  "profile": "warm_provocation",
+  "scores": {
+    "compliance_score": 100,
+    "quality_score": 100,
+    "total_score": 100,
+    "formula": "0.6 * compliance + 0.4 * quality"
+  },
+  "targets": {
+    "compliance_target": 95,
+    "quality_target": 85,
+    "compliance_met": true,
+    "quality_met": true
+  },
+  "per_check": [
+    {
+      "id": "G001",
+      "title": "No exact example line reuse",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 5,
+      "pass": true,
+      "notes": "No cloning detected"
+    },
+    {
+      "id": "W001a",
+      "title": "Hook inom första meningar",
+      "type": "heuristic",
+      "scope": "first_screen",
+      "weight": 15,
+      "pass": true,
+      "notes": "Hook has direct address and contrast"
+    },
+    {
+      "id": "W007b",
+      "title": "Inga fingerpekning-fraser",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 10,
+      "pass": true,
+      "notes": "Inga explicita fingerpekning-fraser hittade"
+    },
+    {
+      "id": "W001",
+      "title": "Avslöjande hook",
+      "type": "llm_judge",
+      "scope": "first_screen",
+      "weight": 40,
+      "pass": true,
+      "notes": "– Öppningen konfronterar läsarens självbild direkt, avslöjar ett självbedrägeri och använder kontraster/negationer som skapar friktion."
+    },
+    {
+      "id": "W005",
+      "title": "Metafor som bär insikt",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": true,
+      "notes": "– Metaforen med att stå och svära över disken utan att röra tallriken är konkret, visuellt och bär en tydlig insikt om undvikande beteende som många känner igen och minns."
+    },
+    {
+      "id": "W007",
+      "title": "Inte moralpredikan (ton)",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": true,
+      "notes": "Score: 92/100 (threshold: 85). Tydlig humor och ironi (\"Nej nej. Inte du.\", \"Du 'är ju bara mån om stämningen'\") som speglar utan att skambelägga; Stark igenkänning genom konkreta vardagssituationer (Slack, korridoren, koordineringsmöte) istället för abstrakta pekpinnar; Avsändaren inkluderar sig själv tydligt (\"den som fortfarande övar\"), vilket skapar värme och minskar föreläsar-tonen",
+      "score": 92,
+      "pass_threshold": 85,
+      "reasons": [
+        "Tydlig humor och ironi (\"Nej nej. Inte du.\", \"Du 'är ju bara mån om stämningen'\") som speglar utan att skambelägga",
+        "Stark igenkänning genom konkreta vardagssituationer (Slack, korridoren, koordineringsmöte) istället för abstrakta pekpinnar",
+        "Avsändaren inkluderar sig själv tydligt (\"den som fortfarande övar\"), vilket skapar värme och minskar föreläsar-tonen"
+      ]
+    },
+    {
+      "id": "W002",
+      "title": "Vardagsmiljö",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"Slack\""
+    },
+    {
+      "id": "W003",
+      "title": "Listsekvens",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"– Du skriver en syrlig rad i Slack istället för att ta ett samtal  \n– Du skakar på huvudet vid skrivbordet men säger \"det är lugnt\" i mötet  \n–\""
+    },
+    {
+      "id": "W004",
+      "title": "Rytmisk paus",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\nNej nej.\""
+    },
+    {
+      "id": "W006",
+      "title": "Signaturblock",
+      "type": "regex",
+      "scope": "last_screen",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\n/\""
+    }
+  ]
+}

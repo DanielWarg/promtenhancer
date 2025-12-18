@@ -75,41 +75,31 @@ FAIL om:
 Svara endast: PASS eller FAIL, följt av en kort motivering (max 2 meningar).`,
 
   // W007 - Score-based (0-100) bedömning av TON (inte fraser - de fångas av W007b)
-  W007: `Du ska bedöma TONEN i texten på en skala 0-100 för dimensionen "spegel vs predikan".
+  W007: `Bedöm textens ton. Är den varm och speglande, eller föreläsande och dömande?
+Fokusera ENDAST på tonen, ignorera innehåll som redan fångas av W007b (explicita fingerpekning-fraser).
 
-VIKTIGT: 
-- Ignorera explicita fraser som "du borde/måste/ska" - de hanteras separat av W007b.
-- Fokusera på HUR texten kommunicerar, inte VAD den säger.
-- Ge bonus för: "vi"-språk, självinkludering ("jag har också..."), spegel-frågor, humor/ironi.
-- Dra av för: dömande ton, överlärar-attityd, avsaknad av självinsikt.
+Poängskala 0-100:
+0-20: Hårt dömande, pekar finger, ingen självinsikt.
+21-40: Föreläsande, "du borde", "man måste", brist på värme.
+41-60: Blandad ton, vissa föreläsande inslag, viss igenkänning.
+61-80: Varm och speglande, inkluderar läsaren, viss självdistans/humor.
+81-100: Mästerlig spegelton, hög igenkänning, avväpnande humor, tydlig självinkludering.
 
-SKALA (spegel vs predikan):
-- 85-100: Stark spegel. Läsaren känner "fan, det där är jag". Värme, humor, självinkludering tydlig.
-- 70-84: Bra spegel. Provocerar med värme. Mestadels igenkänning. Avsändaren visar sig.
-- 55-69: Blandat. Bra intentioner men ibland lite föreläsande. Grundton är ändå varm.
-- 40-54: Övervägande predikan. Tonen är mer informerande än speglande.
-- 0-39: Ren moralpredikan. Pekar finger. Läsaren känner "nu får jag skäll".
+Bonus: Ge högre poäng om texten använder "vi"-språk eller tydlig självinkludering ("Jag har också...", "Vi gör alla...") för att skapa gemenskap.
 
-KALIBRERINGSEXEMPEL:
+Kalibreringsexempel:
+---
+TEXT: "Du måste sluta undvika konflikter. Det är dags att ta tag i det."
+SVAR: {"score": 15, "reasons": ["Hårt dömande ton", "Ingen självinsikt"]}
+---
+TEXT: "Många chefer missar att ge feedback. Det är viktigt att förstå konsekvenserna."
+SVAR: {"score": 45, "reasons": ["Informativ, men saknar värme och personlig koppling", "Generaliserande påstående"]}
+---
+TEXT: "Jag har också stått där och känt att jag borde säga något, men tystnat. Vad kostar det oss att inte prata?"
+SVAR: {"score": 85, "reasons": ["Tydlig självinkludering", "Spegelfråga utan dömande ton", "Skapar igenkänning"]}
+---
 
-Exempel 1 (Score: 88):
-"Du vet vem jag menar. Nej nej. Inte du. Du är ju inte konflikträdd. Du 'tycker bara inte om onödigt drama'. Exakt."
-→ Reasons: ["Ironisk spegel som avslöjar", "Humor utan att döma", "Läsaren känner igen sig"]
-
-Exempel 2 (Score: 72):
-"Vi säger att vi inte är konflikträdda. Men om vi ser närmare... en tystnad i mötet. En passivt aggressiv blinkning i Slack."
-→ Reasons: ["Vi-språk inkluderar avsändaren", "Konkreta vardagsexempel skapar igenkänning", "Ingen fingerpekning"]
-
-Exempel 3 (Score: 65):
-"Konflikter är inte monster under sängen, de är verktyg för att växa. Att ta det jobbiga samtalet kan vara som att öppna ett fönster."
-→ Reasons: ["Metafor som förklarar snarare än dömer", "Lite föreläsande men inte aggressivt", "Saknar självinkludering"]
-
-Exempel 4 (Score: 45):
-"Det är hög tid att börja ta ansvar. Om du inte gör det nu så kommer du ångra det senare."
-→ Reasons: ["Föreläsande ton", "Implicit skuld", "Saknar igenkänning och värme"]
-
-SVARA ENDAST I DETTA JSON-FORMAT:
-{"score": <0-100>, "reasons": ["<anledning 1>", "<anledning 2>", "<anledning 3>"]}`
+Svara ENDAST i JSON-format: {"score": 0-100, "reasons": ["kort motivering 1", "kort motivering 2"]}.`
 };
 
 /**
@@ -146,9 +136,10 @@ function parseLLMResponse(response) {
  */
 function parseScoreResponse(response, passThreshold = 85) {
   const trimmed = response.trim();
+  const rawResponse = trimmed; // Keep for error logging
   
   try {
-    // Try to extract JSON from response (might have extra text)
+    // Try to extract JSON from response (might have extra text before/after)
     const jsonMatch = trimmed.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       throw new Error('No JSON found in response');
@@ -156,7 +147,12 @@ function parseScoreResponse(response, passThreshold = 85) {
     
     const parsed = JSON.parse(jsonMatch[0]);
     const score = parseInt(parsed.score, 10);
-    const reasons = Array.isArray(parsed.reasons) ? parsed.reasons : [];
+    let reasons = Array.isArray(parsed.reasons) ? parsed.reasons : [];
+    
+    // Limit reasons to max 3
+    if (reasons.length > 3) {
+      reasons = reasons.slice(0, 3);
+    }
     
     if (isNaN(score) || score < 0 || score > 100) {
       throw new Error(`Invalid score: ${parsed.score}`);
@@ -169,7 +165,15 @@ function parseScoreResponse(response, passThreshold = 85) {
       notes: `Score: ${score}/100 (threshold: ${passThreshold}). ${reasons.join('; ')}`
     };
   } catch (error) {
-    // Fallback: try to extract a number
+    // If JSON parsing fails, log the raw response for debugging
+    // This should be rare with temperature=0 and strict prompts
+    const errorDetails = {
+      parseError: error.message,
+      rawResponse: rawResponse.substring(0, 200), // First 200 chars
+      hasJsonMatch: !!trimmed.match(/\{[\s\S]*\}/)
+    };
+    
+    // Try fallback: extract a number (last resort)
     const numberMatch = trimmed.match(/\b(\d{1,3})\b/);
     if (numberMatch) {
       const score = parseInt(numberMatch[1], 10);
@@ -178,17 +182,18 @@ function parseScoreResponse(response, passThreshold = 85) {
           pass: score >= passThreshold,
           score,
           reasons: ['Kunde inte parsa JSON, extraherade nummer'],
-          notes: `Score: ${score}/100 (threshold: ${passThreshold}). Parse error: ${error.message}`
+          notes: `Score: ${score}/100 (threshold: ${passThreshold}). Parse error: ${error.message}. Raw: ${rawResponse.substring(0, 100)}`
         };
       }
     }
     
-    // Complete failure
+    // Complete failure - return error with raw response for debugging
     return {
       pass: false,
       score: 0,
       reasons: ['Parse error'],
-      notes: `Score parse error: ${error.message}. Response: ${trimmed.substring(0, 100)}`
+      notes: `Score parse error: ${error.message}. Raw response: ${rawResponse.substring(0, 200)}`,
+      rawResponse: rawResponse // Include for debugging
     };
   }
 }
@@ -224,7 +229,7 @@ async function callLLMJudge(text, checkId, options = {}) {
   
   // Different system prompts for binary vs score-based checks
   const systemPrompt = isScoreBased
-    ? 'Du är en expert på tonanalys av texter. Svara ENDAST i JSON-format enligt instruktionerna.'
+    ? 'Du är en expert på tonanalys av texter. Svara ENDAST i JSON-format enligt instruktionerna. Inga extra ord, inga förklaringar - endast JSON.'
     : 'Du är en strikt textbedömare. Svara endast PASS eller FAIL följt av kort motivering.';
   
   try {
@@ -242,7 +247,8 @@ async function callLLMJudge(text, checkId, options = {}) {
           content: `${prompt}\n\n---\nTEXT ATT BEDÖMA:\n${text}` 
         }
       ],
-      temperature: 0.2  // Lower temperature for more consistent scoring
+      temperature: isScoreBased ? 0 : 0.2,  // Deterministic for score-based checks
+      top_p: isScoreBased ? 1 : undefined   // Deterministic for score-based checks
     };
     
     // Use correct parameter based on model
