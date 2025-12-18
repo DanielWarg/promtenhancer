@@ -404,38 +404,17 @@ async function applyDeMoraliseraPatch(output, spec) {
  * RYTM PATCH - Insert rhythmic pause sequence
  * For W004: Rytmisk paus ('Nej.' / 'Nej nej.' / 'Exakt.')
  * 
- * Strategy: Find last line of list sequence (lines starting with "– ")
- * Insert 3-line pause sequence directly after: empty line + "Nej.\nNej nej.\nExakt."
- * Must not be in last_screen (too close to signature)
+ * Strategy:
+ * 1. If list exists: Insert after last list line (lines starting with "– ")
+ * 2. Fallback: Insert in first_screen after hook-block (after first empty line or after line 2-3)
+ * 3. Safety: Never in last_screen (last 6 lines) - move up to lines.length - 7 if needed
  */
 function applyRytmPatch(output) {
   const lines = output.split('\n');
   const changes = [];
-  
-  // Find last line of list sequence (lines starting with "– ")
-  let lastListIndex = -1;
-  for (let i = 0; i < lines.length; i++) {
-    if (lines[i].trim().startsWith('–')) {
-      lastListIndex = i;
-    }
-  }
-  
-  if (lastListIndex === -1) {
-    return {
-      success: false,
-      error: 'NO_LIST_FOUND',
-      message: 'No list sequence found (lines starting with "– ")',
-      patchedOutput: null
-    };
-  }
-  
-  // Check that insertion point is not too close to signature (last_screen = last 6 lines)
-  const signatureStart = lines.length - 6;
-  if (lastListIndex >= signatureStart) {
-    // Insert earlier - find a safe spot in middle section
-    const middlePoint = Math.floor(lines.length / 2);
-    lastListIndex = Math.min(middlePoint, signatureStart - 3);
-  }
+  let insertIndex = -1;
+  let isFallback = false;
+  let placementLog = '';
   
   // Build pause sequence (3 lines) - each as separate array element to ensure newlines
   const pauseSequence = [
@@ -445,10 +424,66 @@ function applyRytmPatch(output) {
     'Exakt.'   // Third pause
   ];
   
-  // Insert after last list line + empty line (if not already empty)
-  const insertIndex = lastListIndex + 1;
+  // Strategy 1: Find last line of list sequence (lines starting with "– ")
+  let lastListIndex = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].trim().startsWith('–')) {
+      lastListIndex = i;
+    }
+  }
   
-  // Check if there's already an empty line
+  if (lastListIndex !== -1) {
+    // List found - insert after last list line
+    insertIndex = lastListIndex + 1;
+    placementLog = `Inserted rhythm block after list line ${lastListIndex + 1} (list ended at line ${lastListIndex + 1}, inserted at ${insertIndex + 1})`;
+  } else {
+    // Fallback: No list found - find anchor point in first_screen after hook-block
+    isFallback = true;
+    
+    // Try to find good anchor point in first_screen (first 6 lines or ~280 chars)
+    const firstScreenEnd = Math.min(6, lines.length);
+    let anchorFound = false;
+    
+    // Option 1: After first empty line in first_screen (if exists)
+    for (let i = 1; i < firstScreenEnd; i++) {
+      if (lines[i].trim() === '') {
+        insertIndex = i + 1;
+        anchorFound = true;
+        break;
+      }
+    }
+    
+    // Option 2: After line 2-3 (if no empty line found)
+    if (!anchorFound) {
+      // Try after line 3 first, then line 2
+      if (firstScreenEnd >= 4) {
+        insertIndex = 3;
+      } else if (firstScreenEnd >= 3) {
+        insertIndex = 2;
+      } else {
+        // Very short text - insert after line 2 (or line 1 if only 1 line)
+        insertIndex = Math.min(2, lines.length - 1);
+      }
+    }
+    
+    placementLog = `Inserted rhythm block after line ${insertIndex} (fallback: no list found)`;
+  }
+  
+  // Safety check: Never insert in last_screen (last 6 lines)
+  // If insertion point is too close to signature, move up to lines.length - 7
+  const signatureStart = lines.length - 6;
+  if (insertIndex >= signatureStart) {
+    insertIndex = Math.max(0, lines.length - 7);
+    placementLog += ` (moved up to avoid last_screen)`;
+  }
+  
+  // Ensure insertIndex is valid
+  if (insertIndex < 0 || insertIndex > lines.length) {
+    insertIndex = Math.max(0, Math.min(2, lines.length - 1));
+    placementLog = `Inserted rhythm block after line ${insertIndex} (fallback: safe default)`;
+  }
+  
+  // Check if there's already an empty line at insert point
   const hasEmptyLine = insertIndex < lines.length && lines[insertIndex].trim() === '';
   
   // Build patched lines - each pause line is separate to ensure proper newlines
@@ -461,14 +496,12 @@ function applyRytmPatch(output) {
   // Join with explicit newlines to ensure resilience against whitespace formatting
   const patchedOutput = patchedLines.join('\n');
   
-  // Log placement for debugging
-  const placementLog = `Inserted rhythm block after list line ${lastListIndex + 1} (list ended at line ${lastListIndex + 1}, inserted at ${insertIndex + 1})`;
-  
   changes.push({
     type: 'insert_rhythmic_pause',
-    afterLine: lastListIndex + 1,
+    afterLine: insertIndex,
     inserted: pauseSequence.slice(1), // Exclude first empty line from description
-    placement: placementLog
+    placement: placementLog,
+    isFallback: isFallback
   });
   
   return {
@@ -476,7 +509,9 @@ function applyRytmPatch(output) {
     patchedOutput: patchedOutput,
     patchDescription: {
       type: 'rytm',
-      location: `after line ${lastListIndex + 1} (end of list)`,
+      location: isFallback 
+        ? `after line ${insertIndex} (fallback: no list found)`
+        : `after line ${insertIndex} (end of list)`,
       placement: placementLog,
       linesChanged: pauseSequence.length - (hasEmptyLine ? 1 : 0),
       budgetUsed: `${pauseSequence.length - (hasEmptyLine ? 1 : 0)}/3 lines`,
