@@ -96,123 +96,12 @@ function buildInternalPrompt(spec, styleDna, examples) {
   // Get friction value (1-5) for tonal adjustment
   const friction = controls?.friction || 3;
   
-  // Build detailed escalation guidance based on friction
+  // Build detailed escalation guidance based on friction (only for warm_provocation)
   let tonalGuidance = '';
   let hookGuidance = '';
   let rhetoricalGuidance = '';
   
-  if (profile === 'brev') {
-    // Brev-profil: Differentiering baserad på inre position, inte ton
-    const brevLevels = {
-      1: {
-        title: 'Närvaro utan perspektiv',
-        perspective: 'Nuet. Ingen framtid. Ingen analys.',
-        tone: 'Utmattad, fragmenterad.',
-        structure: 'Korta meningar. Pauser. Ofullständighet.',
-        forbidden: 'FÅR INTE innehålla: tröst, lärdom, systemkritik, slutsats.',
-        innerPosition: 'Jag orkar inte tänka längre än idag',
-        ending: 'Fragmenterat, ingen avslutning. Bara närvaro.'
-      },
-      2: {
-        title: 'Igenkänning utan lösning',
-        perspective: 'Observerande.',
-        tone: 'Varsam igenkänning.',
-        structure: '"Jag ser dig", men ingen förändring erbjuds.',
-        forbidden: 'FÅR INTE innehålla: råd, framtidsperspektiv, systemkritik.',
-        innerPosition: 'Jag ser det, men kan inte förändra det',
-        ending: 'Igenkänning utan lösning. "Det är allt jag vet just nu."'
-      },
-      3: {
-        title: 'Efterhandsperspektiv',
-        perspective: 'Då → nu.',
-        tone: 'Öm insikt.',
-        structure: 'Minnesberättelse + stillsam förståelse.',
-        forbidden: 'FÅR INTE bli: tröstande eller normativ.',
-        innerPosition: 'Det var större än jag förstod då',
-        ending: 'Mjuk insikt. "Det var livet."'
-      },
-      4: {
-        title: 'Existentiell/systemisk reflektion',
-        perspective: 'Individ → system → liv.',
-        tone: 'Still, reflekterande.',
-        structure: 'Skiftar fokus från individ till hur världen är byggd.',
-        forbidden: 'FÅR INTE bli: politisk, aktivistisk eller lösningsorienterad.',
-        innerPosition: 'Det här säger något om hur vi lever',
-        ending: 'Systemisk reflektion. "Och kanske är det där vi måste börja."'
-      },
-      5: {
-        title: 'Försonad klarhet',
-        perspective: ' Erkännande.',
-        tone: 'Klar, lugn, accepterande.',
-        structure: 'Upprepning som bekräftelse ("Det var aldrig fel…").',
-        forbidden: 'FÅR INTE innehålla: råd, uppmaningar, skuld.',
-        innerPosition: 'Det var aldrig fel. Det var mänskligt.',
-        ending: 'Försonad klarhet. "Det var mänskligt."'
-      }
-    };
-    
-    const level = brevLevels[friction] || brevLevels[3];
-    
-    tonalGuidance = `
-# BREV-PROFIL: INRE POSITION (Nivå ${friction}/5: ${level.title})
-
-VIKTIGASTE REGELN:
-Alla nivåer (1–5) MÅSTE vara tydligt differentierade i:
-- inre position
-- tidsrörelse
-- emotionell temperatur
-- typ av avslut
-
-De ska kännas skrivna av samma person – men från olika mentala platser i livet.
-
-## Nivå ${friction} Definition (OBLIGATORISKT)
-
-**Inre position:** ${level.innerPosition}
-**Perspektiv:** ${level.perspective}
-**Ton:** ${level.tone}
-**Struktur:** ${level.structure}
-**${level.forbidden}
-
-**Avslut:** ${level.ending}
-
-## Gemensamma regler (alla nivåer)
-
-- Jag-form
-- Konkreta vardagsbilder (tid, kropp, plats)
-- Ingen imperativ
-- Ingen coach-retorik
-- Ingen CTA
-- Signatur MÅSTE komma från spec (aldrig hårdkodad)
-- Varje nivå ska kunna läsas bredvid de andra och kännas tydligt annorlunda
-
-## KRITISKT: Differentiering mellan nivåer
-
-Anta att alla nivåer jämförs sida vid sida.
-Om två nivåer känns för lika → DU HAR MISSLYCKATS.
-
-**Förbjudet mellan nivåer:**
-- ❌ INGA identiska meningar mellan nivåer
-- ❌ INGA identiska öppningar
-- ❌ INGA identiska avslut
-- ❌ INGA identiska emotionella bågar
-- ❌ INGA identiska tidsrörelser
-
-**Tillåtet:**
-- ✅ Samma röst, olika inre positioner
-- ✅ Språket ska kännas skrivet, inte genererat
-- ✅ Varje nivå ska kunna läsas som samma person på olika dagar i livet
-
-## Exempel på differentiering:
-
-**Nivå 1:** Fragmenterat, i nuet, ingen reflektion
-**Nivå 2:** Observerande, igenkännande, ingen lösning
-**Nivå 3:** Minns-perspektiv, öm insikt, efterhandsförståelse
-**Nivå 4:** Systemisk reflektion, existentiell, mindre vardag
-**Nivå 5:** Försonad klarhet, erkännande, ingen tröst
-
-Kontrollfråga: Om en människa läser nivå 1 och nivå 5 – ska det kännas som samma person, men inte samma dag i livet.
-`;
-  } else if (profile === 'warm_provocation') {
+  if (profile === 'warm_provocation') {
     // Retorisk skärpa per nivå
     const rhetoricalLevels = {
       1: {
@@ -423,11 +312,6 @@ Texten ska kännas som någon som står mitt i rummet och säger det som ingen v
   const prompt = `# UPPGIFT
 Skriv ett LinkedIn-inlägg enligt profilen "${profile}".
 
-${profile === 'brev' ? `# BREV-PROFIL: INRE POSITION-STYRNING
-VIKTIGT: Skillnaden mellan nivåerna är INTE ton (snäll ↔ hård) utan INRE POSITION (var i livet texten kommer ifrån).
-Varje nivå ska kännas skriven av samma person – men från olika mentala platser i livet.
-Se detaljerade nivådefinitioner nedan.` : ''}
-
 # STIL-DNA (följ detta noggrant)
 ${styleDna}
 
@@ -464,7 +348,7 @@ ${constraints.signature?.name ? `/${constraints.signature.name}` : ''}${constrai
 # OUTPUT
 Skriv ENDAST LinkedIn-inlägget. Ingen inledning, ingen förklaring.
 Börja direkt med texten och avsluta med signaturen.
-${profile === 'brev' ? 'VIKTIGT: Avsluta enligt nivådefinitionen ovan. Ingen uppmaning, ingen råd, ingen CTA. Stillsam bekräftelse eller närvaro, beroende på nivå.' : 'VIKTIGT: Avsluta ALLTID med en spegelfråga, aldrig med uppmaning eller råd.'}
+VIKTIGT: Avsluta ALLTID med en spegelfråga, aldrig med uppmaning eller råd.
 `;
 
   return prompt;
