@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  regression:
+    name: Regression Tests (Offline)
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run regression tests (NO_NETWORK)
+        env:
+          NO_NETWORK: 1
+          # Explicitly unset OPENAI_API_KEY to ensure offline mode
+        run: |
+          unset OPENAI_API_KEY || true
+          npm run harness:test:regression
+      
+      - name: Verify test output
+        run: |
+          if [ ! -d "harness/runs" ]; then
+            echo "❌ No runs directory created"
+            exit 1
+          fi
+          echo "✅ Regression tests completed"
+
+  w007-stability:
+    name: W007 Stability Test (Requires API Key)
+    runs-on: ubuntu-latest
+    # Only run if OPENAI_API_KEY secret is set
+    if: ${{ secrets.OPENAI_API_KEY != '' }}
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run W007 stability test
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          echo "🧪 Running W007 stability test..."
+          npm run harness:warm || echo "⚠️ W007 test failed (non-blocking)"
+          echo "✅ W007 stability test completed"
+      
+      - name: Upload run artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: w007-runs
+          path: harness/runs/*
+          retention-days: 7
+

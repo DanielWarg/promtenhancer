@@ -3,6 +3,8 @@
  * LLM Judge checks
  */
 
+import { config } from '../config.js';
+
 // LLM Judge prompts for each check
 const JUDGE_PROMPTS = {
   B005: `Bedöm om texten innehåller en genuin vändning från skuld/stress till mänsklighet/tillåtelse.
@@ -69,23 +71,45 @@ FAIL om:
 
 Svara endast: PASS eller FAIL, följt av en kort motivering (max 2 meningar).`,
 
-  W007: `Bedöm om texten provocerar med värme och igenkänning eller om den föreläser/moraliserar.
+  W007: `Du är en tonbedömare. Bedöm ENBART textens TON på skalan "spegel" vs "predikan".
 
-PASS-KRITERIER (båda måste uppfyllas):
-1. Texten innehåller minst en självinvolvering: "jag har", "jag också", "vi gör", "jag känner igen"
-2. Texten saknar direkta imperativ: "du borde", "du måste", "man måste", "det är dags att", "ni behöver"
+IGNORERA:
+- Direkta imperativ (redan fångade av annan check)
+- Innehållets ämne eller kvalitet
+- Strukturella element (listor, pauser, längd)
 
-FAIL om:
-- Texten innehåller imperativ som pekar finger
-- Det saknas avsändarens egen röst/erfarenhet
-- Tonen är överlärar-aktig utan självinsikt
+BEDÖM ENDAST:
+- Känns avsändaren inkluderad i texten? (spegel = hög poäng)
+- Föreläser texten uppifrån-ner? (predikan = låg poäng)
+- Skapar tonen igenkänning eller skuldbeläggning?
 
-PASS om:
-- Avsändaren inkluderar sig själv tydligt
-- Inga fingerpekning-fraser finns
-- Läsaren känner igenkänning, inte tillrättavisning
+POÄNGSKALA 0-100:
+- 0-30: Predikan. Texten pekar finger, avsändaren står utanför.
+- 31-50: Lite predikan. Blandad ton, ibland inkluderande, ibland dömande.
+- 51-70: Mestadels spegel. Avsändaren är med, men tonen kan vara överpedagogisk.
+- 71-85: Bra spegel. Värme och igenkänning, avsändaren delar erfarenhet.
+- 86-100: Excellent spegel. Texten känns som ett samtal mellan jämlikar.
 
-Svara endast: PASS eller FAIL, följt av en kort motivering (max 2 meningar).`
+CALIBRATION EXAMPLES:
+
+Ex 1 (score: 85):
+"Jag har också gjort exakt så. Valt att skicka ett meddelande istället för att ta samtalet. Det var lättare. Men det löste ingenting."
+→ Avsändaren delar egen erfarenhet, sårbar, inkluderande.
+
+Ex 2 (score: 45):
+"Du borde ta de jobbiga samtalen. Sluta undvika konflikter. Det är dags att växa upp."
+→ Fingerpekning, avsändaren står utanför och dömer.
+
+Ex 3 (score: 70):
+"Vi gör alla så ibland. Men kanske finns det ett bättre sätt."
+→ Inkluderande "vi", men lite för pedagogisk i slutet.
+
+Svara ENDAST med JSON:
+{"score": <0-100>, "reasons": ["<max 2 korta skäl>"]}`
+};
+
+// Score threshold for W007 (PASS if score >= threshold)
+const W007_THRESHOLD = 70;
 };
 
 /**
@@ -117,6 +141,46 @@ function parseLLMResponse(response) {
 }
 
 /**
+ * Parse W007 score-based response (JSON)
+ */
+function parseW007Response(response) {
+  const trimmed = response.trim();
+  
+  try {
+    // Try to extract JSON from response
+    const jsonMatch = trimmed.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('No JSON found');
+    }
+    
+    const parsed = JSON.parse(jsonMatch[0]);
+    const score = parseInt(parsed.score, 10);
+    const reasons = Array.isArray(parsed.reasons) ? parsed.reasons : [];
+    
+    if (isNaN(score) || score < 0 || score > 100) {
+      throw new Error('Invalid score');
+    }
+    
+    const pass = score >= W007_THRESHOLD;
+    
+    return {
+      pass,
+      score,
+      reasons,
+      notes: `Score: ${score}/100 (threshold: ${W007_THRESHOLD}). ${reasons.join(' ')}`
+    };
+  } catch (error) {
+    // Fallback to PASS/FAIL parsing if JSON fails
+    const fallback = parseLLMResponse(response);
+    return {
+      ...fallback,
+      score: fallback.pass ? 75 : 40,
+      reasons: [fallback.notes]
+    };
+  }
+}
+
+/**
  * Call OpenAI to judge text
  */
 async function callLLMJudge(text, checkId) {
@@ -137,6 +201,12 @@ async function callLLMJudge(text, checkId) {
     };
   }
   
+  // Different system prompt for score-based W007
+  const isScoreBased = checkId === 'W007';
+  const systemPrompt = isScoreBased 
+    ? 'Du är en tonbedömare. Svara ENDAST med JSON i formatet {"score": <0-100>, "reasons": ["...", "..."]}. Ingen annan text.'
+    : 'Du är en strikt textbedömare. Svara endast PASS eller FAIL följt av kort motivering.';
+  
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -149,7 +219,7 @@ async function callLLMJudge(text, checkId) {
         messages: [
           { 
             role: 'system', 
-            content: 'Du är en strikt textbedömare. Svara endast PASS eller FAIL följt av kort motivering.' 
+            content: systemPrompt
           },
           { 
             role: 'user', 
@@ -157,7 +227,7 @@ async function callLLMJudge(text, checkId) {
           }
         ],
         temperature: 0.3,  // Low temperature for consistent judging
-        max_tokens: 150
+        max_tokens: isScoreBased ? 200 : 150
       })
     });
     
@@ -168,6 +238,11 @@ async function callLLMJudge(text, checkId) {
     
     const data = await response.json();
     const llmResponse = data.choices[0].message.content;
+    
+    // Use score-based parser for W007
+    if (isScoreBased) {
+      return parseW007Response(llmResponse);
+    }
     
     return parseLLMResponse(llmResponse);
     
@@ -189,14 +264,29 @@ export async function runLLMJudgeCheck(text, check, options = {}) {
   const { id } = check;
   const { stubMode = false } = options;
   
-  if (stubMode) {
+  // Check if LLM is disabled (via config or stubMode)
+  if (stubMode || !config.LLM_ENABLED) {
     return {
       pass: false,
-      notes: `[STUB] LLM judge disabled for ${id}`
+      skipped: true,
+      notes: `[SKIPPED] LLM judge disabled for ${id} (${config.LLM_SKIP_REASON || 'stub mode'})`
     };
   }
   
-  return await callLLMJudge(text, id);
+  const result = await callLLMJudge(text, id);
+  
+  // Include score and reasons for W007 (score-based)
+  if (id === 'W007' && result.score !== undefined) {
+    return {
+      pass: result.pass,
+      notes: result.notes,
+      score: result.score,
+      reasons: result.reasons,
+      threshold: W007_THRESHOLD
+    };
+  }
+  
+  return result;
 }
 
 /**

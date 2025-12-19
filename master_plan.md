@@ -120,7 +120,8 @@ Iteration Layer (Local Patch):
 | W003 | Listsekvens med tankstreck (3-5 rader) | regex | full_text | **20** |
 | W004 | Rytmisk paus ("Nej." / "Nej nej." / "Exakt.") | regex | full_text | **15** |
 | W006 | Signaturblock i slutet | regex | last_screen | **15** |
-| G001 | No exact example line reuse | heuristic | full_text | **15** |
+| W007b | Inga imperativ (fingerpekning-fraser) | heuristic | full_text | **10** |
+| G001 | No exact example line reuse | heuristic | full_text | **5** |
 | | | | **SUMMA:** | **100** |
 
 #### Quality Score (llm_judge) = 100
@@ -434,6 +435,21 @@ FAIL om:
 Svara endast: PASS eller FAIL, följt av en kort motivering (max 2 meningar).
 ```
 
+### W007b - Inga imperativ (Warm Provocation) - Heuristic Pre-check
+
+```
+Heuristisk check som identifierar fingerpekning-fraser före LLM-judge.
+
+FAIL om texten innehåller:
+- "du borde", "du måste", "man måste", "man borde"
+- "det är dags att", "ni behöver"
+- Softer imperativ: "tänk om du", "vad sägs om att du", "prova att", "försök att"
+- "vill du", "tänk på det som", "börja med att"
+
+PASS om:
+- Inga imperativ hittas OCH texten innehåller självinvolvering ("jag har", "jag också", "vi gör", "jag känner igen")
+```
+
 ### W007 - Inte moralpredikan (Warm Provocation)
 
 ```
@@ -471,6 +487,7 @@ const CHECK_TO_PATCH = {
   'W005': 'metafor',
   'W006': 'signatur',
   'W007': 'de-moralisera',
+  'W007b': 'de-moralisera',
   
   // Brev
   'B001': 'hook',
@@ -528,6 +545,29 @@ const PATCH_BUDGETS = {
   'signatur': { maxLines: 3, location: 'bottom' },
   'langd': { maxLines: 0, location: 'full', trimOrExpand: true }
 };
+```
+
+### De-Moralisera Patch - Förbättrad Implementation (UPPDATERAD)
+
+```javascript
+// I iterator.js - för de-moralisera patch
+// Strategi:
+// 1. Ersätt fingerpekning-fraser med spegel/inkludering
+// 2. Lägg till självinvolverande rad inom budget
+// 3. Skydda lista-struktur (W003) - hoppa över listrader vid ersättningar
+// 4. Undvik att lägga till självinvolvering mitt i listsekvenser
+
+// Ersättningar:
+// - "du borde/måste/ska" → "jag har också känt att jag borde" / "vi kan"
+// - "man måste/borde" → "vi gör ofta" / "det är lätt att"
+// - "det är dags att" → "jag känner igen mig i att"
+// - "ni behöver" → "vi behöver ibland"
+// - "sluta" → "det är okej att inte"
+// - Softer imperativ → självinvolverande formuleringar
+
+// Självinvolverande rad (om budget finns):
+// - "Jag har också gjort exakt så."
+// - Placeras EFTER beskrivning av beteende, INTE i listor
 ```
 
 ### Format Patch - Sanity Check (KRITISKT)
@@ -937,7 +977,7 @@ Run saved to: ./harness/runs/2025-01-15_103500/
 
 5. **Implementera lib/checks/**
    - regex-checks.js
-   - heuristic-checks.js (inkl W001a och G001)
+   - heuristic-checks.js (inkl W001a, W007b och G001)
    - llm-judge.js (alla prompts)
 
 6. **Implementera lib/generator.js**
@@ -1052,10 +1092,12 @@ Ninja-psykolog™ och den som fortfarande övar på att inte skicka DM när jag 
 Implementation är klar när:
 
 - [ ] Alla filer skapade enligt filstruktur
-- [ ] acceptance_checks.json har alla checks med rätt weights och scopes
+- [ ] acceptance_checks.json har alla checks med rätt weights och scopes (inkl W007b)
 - [ ] Dual scoring fungerar (compliance + quality)
 - [ ] G001 Jaccard clone detector fungerar (threshold 0.85, min 35 tecken)
+- [ ] W007b heuristic check fungerar (identifierar imperativ före LLM-judge)
 - [ ] Iterator gör lokala patchar (diff visar små ändringar)
+- [ ] De-moralisera patch skyddar lista-struktur (W003) och lägger till självinvolvering
 - [ ] Format-patch ändrar aldrig ord (word_diff == 0 enforcement)
 - [ ] CLI fungerar med alla kommandon (generate, eval, iterate, run, compare)
 - [ ] npm run harness:brev och npm run harness:warm kör framgångsrikt

@@ -7,6 +7,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { config, printConfigBanner } from './lib/config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,6 +52,11 @@ function parseArgs(args) {
       parsed.options[key] = value;
       if (value !== true) i++;
     }
+  }
+  
+  // Handle --no-network flag
+  if (parsed.options['no-network'] === true) {
+    process.env.NO_NETWORK = '1';
   }
   
   return parsed;
@@ -119,6 +125,9 @@ async function cmdGenerate(options) {
     process.exit(1);
   }
   
+  // Print config banner if LLM disabled
+  printConfigBanner();
+  
   console.log('═══════════════════════════════════════════════════════════════');
   console.log('  REFLEKTERA TEXT HARNESS v1.1 - GENERATE');
   console.log('═══════════════════════════════════════════════════════════════');
@@ -169,8 +178,16 @@ async function cmdEval(options) {
   console.log('');
   console.log('═══════════════════════════════════════════════════════════════');
   console.log(`📊 Compliance: ${result.scores.compliance_score}/100 (target: ${result.targets.compliance_target})`);
-  console.log(`📊 Quality: ${result.scores.quality_score}/100 (target: ${result.targets.quality_target})`);
-  console.log(`📊 Total: ${result.scores.total_score}/100`);
+  if (result.scores.quality_status === 'SKIPPED') {
+    console.log(`📊 Quality: SKIPPED (LLM disabled)`);
+    console.log(`📊 Total: ${result.scores.total_score}/100 (${result.scores.total_score_formula})`);
+    console.log(`⚠️  Quality target cannot be evaluated offline`);
+    console.log(`📋 Run Status: ${result.targets.run_status}`);
+  } else {
+    console.log(`📊 Quality: ${result.scores.quality_score}/100 (target: ${result.targets.quality_target})`);
+    console.log(`📊 Total: ${result.scores.total_score}/100 (${result.scores.total_score_formula})`);
+    console.log(`📋 Run Status: ${result.targets.run_status}`);
+  }
   console.log('═══════════════════════════════════════════════════════════════');
   
   return result;
@@ -180,6 +197,9 @@ async function cmdEval(options) {
  * Command: run (generate + eval + iterate)
  */
 async function cmdRun(options) {
+  // Print config banner if LLM disabled
+  printConfigBanner();
+  
   console.log('═══════════════════════════════════════════════════════════════');
   console.log('  REFLEKTERA TEXT HARNESS v1.1 - FULL RUN');
   console.log('═══════════════════════════════════════════════════════════════');
@@ -201,14 +221,27 @@ async function cmdRun(options) {
   
   // Check if iteration needed
   const complianceMet = evalResult.scores.compliance_score >= complianceTarget;
-  const qualityMet = evalResult.scores.quality_score >= qualityTarget;
+  const qualitySkipped = evalResult.scores.quality_status === 'SKIPPED';
+  const qualityMet = qualitySkipped ? null : evalResult.scores.quality_score >= qualityTarget;
   
-  if (complianceMet && qualityMet) {
+  if (complianceMet && qualityMet === true) {
     console.log('');
     console.log('═══════════════════════════════════════════════════════════════');
     console.log(`✅ Targets met on first try!`);
     console.log(`📊 Compliance: ${evalResult.scores.compliance_score}/100`);
     console.log(`📊 Quality: ${evalResult.scores.quality_score}/100`);
+    console.log(`📁 Run saved to: ${genResult.runDir}`);
+    console.log('═══════════════════════════════════════════════════════════════');
+    return { genResult, evalResult, iterResult: null };
+  }
+  
+  if (qualitySkipped && complianceMet) {
+    console.log('');
+    console.log('═══════════════════════════════════════════════════════════════');
+    console.log(`⚠️  Compliance target met, but quality cannot be evaluated offline`);
+    console.log(`📊 Compliance: ${evalResult.scores.compliance_score}/100`);
+    console.log(`📊 Quality: SKIPPED (LLM disabled)`);
+    console.log(`📋 Run Status: ${evalResult.targets.run_status}`);
     console.log(`📁 Run saved to: ${genResult.runDir}`);
     console.log('═══════════════════════════════════════════════════════════════');
     return { genResult, evalResult, iterResult: null };
@@ -307,6 +340,7 @@ Alternativ:
   --target-compliance N   Compliance-mål (default: 95)
   --target-quality N      Quality-mål (default: 85)
   --max N                 Max antal iterationer (default: 3)
+  --no-network            Kör utan nätverk/LLM (offline-läge)
 
 Exempel:
   npm run harness -- generate --spec ./harness/specs/brev_smallbarn.json

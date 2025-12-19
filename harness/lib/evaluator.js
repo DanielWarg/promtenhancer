@@ -10,6 +10,7 @@ import { getTextByScope } from './utils.js';
 import { runAllRegexChecks } from './checks/regex-checks.js';
 import { runAllHeuristicChecks } from './checks/heuristic-checks.js';
 import { runAllLLMJudgeChecks } from './checks/llm-judge.js';
+import { config } from './config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,6 +50,7 @@ function getProfileChecks(checksData, profile) {
 
 /**
  * Calculate scores from check results
+ * Handles skipped LLM checks (they don't count towards score)
  */
 function calculateScores(checkResults, profileChecks) {
   // Compliance = regex + heuristic
@@ -57,8 +59,12 @@ function calculateScores(checkResults, profileChecks) {
   let complianceTotal = 0;
   
   for (const check of complianceChecks) {
+    const result = checkResults[check.id];
+    // Skip checks that are marked as skipped
+    if (result?.skipped) continue;
+    
     complianceTotal += check.weight;
-    if (checkResults[check.id]?.pass) {
+    if (result?.pass) {
       compliancePassed += check.weight;
     }
   }
@@ -67,10 +73,18 @@ function calculateScores(checkResults, profileChecks) {
   const qualityChecks = profileChecks.quality;
   let qualityPassed = 0;
   let qualityTotal = 0;
+  let qualitySkipped = false;
   
   for (const check of qualityChecks) {
+    const result = checkResults[check.id];
+    // Track if any quality check was skipped
+    if (result?.skipped) {
+      qualitySkipped = true;
+      continue;
+    }
+    
     qualityTotal += check.weight;
-    if (checkResults[check.id]?.pass) {
+    if (result?.pass) {
       qualityPassed += check.weight;
     }
   }
@@ -78,12 +92,37 @@ function calculateScores(checkResults, profileChecks) {
   const compliance_score = complianceTotal > 0 
     ? Math.round(100 * compliancePassed / complianceTotal) 
     : 0;
-  const quality_score = qualityTotal > 0 
-    ? Math.round(100 * qualityPassed / qualityTotal) 
-    : 0;
-  const total_score = Math.round(0.6 * compliance_score + 0.4 * quality_score);
   
-  return { compliance_score, quality_score, total_score };
+  // If all quality checks were skipped, quality_score is null and quality_status is SKIPPED
+  let quality_score = null;
+  let quality_status = null;
+  let total_score = 0;
+  let total_score_formula = '';
+  
+  if (qualitySkipped && qualityTotal === 0) {
+    // Quality was skipped - use null for score, set status
+    quality_score = null;
+    quality_status = 'SKIPPED';
+    total_score = compliance_score;
+    total_score_formula = 'compliance_only (quality skipped)';
+  } else {
+    // Quality was evaluated normally
+    quality_score = qualityTotal > 0 
+      ? Math.round(100 * qualityPassed / qualityTotal) 
+      : 0;
+    quality_status = null;
+    total_score = Math.round(0.6 * compliance_score + 0.4 * quality_score);
+    total_score_formula = '0.6 * compliance + 0.4 * quality';
+  }
+  
+  return { 
+    compliance_score, 
+    quality_score, 
+    quality_status,
+    total_score, 
+    total_score_formula,
+    qualitySkipped 
+  };
 }
 
 /**
@@ -93,7 +132,7 @@ function buildResultsJson(checkResults, scores, targets, profile, version = 'v1'
   const perCheck = [];
   
   for (const [id, result] of Object.entries(checkResults)) {
-    perCheck.push({
+    const checkEntry = {
       id,
       title: result.check?.title || id,
       type: result.check?.type || 'unknown',
@@ -101,7 +140,22 @@ function buildResultsJson(checkResults, scores, targets, profile, version = 'v1'
       weight: result.check?.weight || 0,
       pass: result.pass,
       notes: result.notes
-    });
+    };
+    
+    // Mark skipped checks
+    if (result.skipped) {
+      checkEntry.skipped = true;
+      checkEntry.pass = false; // Skipped checks are treated as failed for routing
+    }
+    
+    // Include score-based data for W007
+    if (id === 'W007' && result.score !== undefined) {
+      checkEntry.score = result.score;
+      checkEntry.threshold = result.threshold;
+      checkEntry.reasons = result.reasons;
+    }
+    
+    perCheck.push(checkEntry);
   }
   
   // Sort by type then id
@@ -110,21 +164,36 @@ function buildResultsJson(checkResults, scores, targets, profile, version = 'v1'
     return a.id.localeCompare(b.id);
   });
   
+  // Determine run status
+  let run_status = null;
+  const compliance_met = scores.compliance_score >= targets.complianceTarget;
+  const quality_met = scores.quality_status === 'SKIPPED' 
+    ? null  // Cannot evaluate quality target offline
+    : (scores.quality_score >= targets.qualityTarget);
+  
+  if (scores.quality_status === 'SKIPPED') {
+    run_status = compliance_met ? 'PARTIAL_OFFLINE_SUCCESS' : 'OFFLINE_INCOMPLETE';
+  } else {
+    run_status = (compliance_met && quality_met) ? 'SUCCESS' : 'INCOMPLETE';
+  }
+  
   return {
     version,
     timestamp: new Date().toISOString(),
     profile,
     scores: {
       compliance_score: scores.compliance_score,
-      quality_score: scores.quality_score,
+      quality_score: scores.quality_score,  // null when skipped
+      quality_status: scores.quality_status,  // "SKIPPED" or null
       total_score: scores.total_score,
-      formula: '0.6 * compliance + 0.4 * quality'
+      total_score_formula: scores.total_score_formula
     },
     targets: {
       compliance_target: targets.complianceTarget,
       quality_target: targets.qualityTarget,
-      compliance_met: scores.compliance_score >= targets.complianceTarget,
-      quality_met: scores.quality_score >= targets.qualityTarget
+      compliance_met,
+      quality_met,  // null when skipped
+      run_status
     },
     per_check: perCheck
   };
@@ -136,8 +205,9 @@ function buildResultsJson(checkResults, scores, targets, profile, version = 'v1'
 function buildSummaryMd(results, runId) {
   const { scores, targets, per_check, profile } = results;
   
-  const failedChecks = per_check.filter(c => !c.pass);
+  const failedChecks = per_check.filter(c => !c.pass && !c.skipped);
   const passedChecks = per_check.filter(c => c.pass);
+  const skippedChecks = per_check.filter(c => c.skipped);
   
   let md = `# Run Summary
 
@@ -150,8 +220,10 @@ function buildSummaryMd(results, runId) {
 | Metric | Score | Target | Status |
 |--------|-------|--------|--------|
 | Compliance | ${scores.compliance_score} | ${targets.compliance_target} | ${targets.compliance_met ? '✅ MET' : '❌ NOT MET'} |
-| Quality | ${scores.quality_score} | ${targets.quality_target} | ${targets.quality_met ? '✅ MET' : '❌ NOT MET'} |
+| Quality | ${scores.quality_status === 'SKIPPED' ? 'SKIPPED (LLM disabled)' : scores.quality_score} | ${targets.quality_target} | ${scores.quality_status === 'SKIPPED' ? '⏭️ SKIPPED' : (targets.quality_met ? '✅ MET' : '❌ NOT MET')} |
 | Total | ${scores.total_score} | - | - |
+| Formula | ${scores.total_score_formula} | - | - |
+| Run Status | ${targets.run_status} | - | - |
 
 ## Check Results
 
@@ -168,6 +240,16 @@ function buildSummaryMd(results, runId) {
 
   for (const check of failedChecks) {
     md += `- **${check.id}** (${check.type}, weight: ${check.weight}): ${check.notes}\n`;
+  }
+
+  if (skippedChecks.length > 0) {
+    md += `
+### ⏭️ Skipped (${skippedChecks.length}) - LLM disabled
+`;
+
+    for (const check of skippedChecks) {
+      md += `- **${check.id}** (${check.type}, weight: ${check.weight}): ${check.notes}\n`;
+    }
   }
 
   return md;
@@ -251,7 +333,7 @@ export async function evaluate(runDir, options = {}) {
     output, 
     profileChecks.all, 
     scopeGetter,
-    { stubMode }
+    { stubMode: stubMode || !config.LLM_ENABLED }
   );
   
   // Merge all results
@@ -265,9 +347,16 @@ export async function evaluate(runDir, options = {}) {
   const scores = calculateScores(allResults, profileChecks);
   
   console.log('');
-  console.log(`📊 Compliance: ${scores.compliance_score}/100 (target: ${complianceTarget})`);
-  console.log(`📊 Quality: ${scores.quality_score}/100 (target: ${qualityTarget})`);
-  console.log(`📊 Total: ${scores.total_score}/100`);
+  if (scores.qualitySkipped) {
+    console.log(`📊 Compliance: ${scores.compliance_score}/100 (target: ${complianceTarget})`);
+    console.log(`📊 Quality: SKIPPED (LLM disabled)`);
+    console.log(`📊 Total: ${scores.total_score}/100 (${scores.total_score_formula})`);
+    console.log(`⚠️  Quality target cannot be evaluated offline`);
+  } else {
+    console.log(`📊 Compliance: ${scores.compliance_score}/100 (target: ${complianceTarget})`);
+    console.log(`📊 Quality: ${scores.quality_score}/100 (target: ${qualityTarget})`);
+    console.log(`📊 Total: ${scores.total_score}/100 (${scores.total_score_formula})`);
+  }
   
   // Build and save results
   const targets = { complianceTarget, qualityTarget };

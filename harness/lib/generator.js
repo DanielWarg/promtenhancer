@@ -6,6 +6,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { config } from './config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -175,6 +176,17 @@ ${constraints.signature?.tagline || ''}
  * Call OpenAI API to generate output
  */
 async function callOpenAI(prompt, spec) {
+  // Check if LLM is disabled
+  if (!config.LLM_ENABLED) {
+    console.log(`⚠️  LLM disabled: ${config.LLM_SKIP_REASON}`);
+    console.log('📝 Creating placeholder output...');
+    return {
+      output: generateDummyOutput(spec),
+      isDummy: true,
+      skipReason: config.LLM_SKIP_REASON
+    };
+  }
+  
   const apiKey = process.env.OPENAI_API_KEY;
   
   if (!apiKey) {
@@ -255,16 +267,32 @@ export async function generate(specPath, runDir) {
   console.log(`💾 Sparade: ${promptPath}`);
   
   // Generate output
-  console.log('🤖 Genererar output...');
+  if (!config.LLM_ENABLED) {
+    console.log('🤖 LLM disabled - creating placeholder output...');
+  } else {
+    console.log('🤖 Genererar output...');
+  }
+  
   const result = await callOpenAI(internalPrompt, spec);
   
   // Save output
   const outputPath = path.join(runDir, 'output_v1.txt');
-  fs.writeFileSync(outputPath, result.output);
+  
+  // If LLM was disabled, add clear marker to output
+  let outputToSave = result.output;
+  if (!config.LLM_ENABLED) {
+    outputToSave = `[GENERATION SKIPPED - LLM DISABLED]\n\n${config.LLM_SKIP_REASON}\n\n---\n\n${outputToSave}`;
+  }
+  
+  fs.writeFileSync(outputPath, outputToSave);
   console.log(`💾 Sparade: ${outputPath}`);
   
-  if (result.isDummy) {
-    console.log('⚠️  Dummy output genererat (sätt OPENAI_API_KEY för riktigt output)');
+  if (result.isDummy || !config.LLM_ENABLED) {
+    if (!config.LLM_ENABLED) {
+      console.log(`⚠️  Placeholder output genererat (${config.LLM_SKIP_REASON})`);
+    } else {
+      console.log('⚠️  Dummy output genererat (sätt OPENAI_API_KEY för riktigt output)');
+    }
   } else {
     console.log(`✅ Output genererat (${result.usage?.total_tokens || '?'} tokens)`);
   }
