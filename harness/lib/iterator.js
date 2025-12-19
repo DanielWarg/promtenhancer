@@ -131,15 +131,68 @@ export function determinePatch(failedChecks) {
 }
 
 /**
- * FORMAT PATCH - Create natural paragraph breaks, not many lonely sentences
- * For B003: 3-6 paragraphs with empty lines between, max 2 lonely sentences
+ * Normalize whitespace for comparison (all whitespace -> single space, trim)
+ */
+function normalizeWhitespace(text) {
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Verify whitespace-only invariant: original and patched must be identical when whitespace is normalized
+ */
+function verifyWhitespaceOnlyInvariant(original, patched) {
+  const originalNormalized = normalizeWhitespace(original);
+  const patchedNormalized = normalizeWhitespace(patched);
+  
+  if (originalNormalized !== patchedNormalized) {
+    // Find first difference for debugging
+    let firstDiff = 0;
+    const minLen = Math.min(originalNormalized.length, patchedNormalized.length);
+    for (let i = 0; i < minLen; i++) {
+      if (originalNormalized[i] !== patchedNormalized[i]) {
+        firstDiff = i;
+        break;
+      }
+    }
+    return {
+      valid: false,
+      message: `Whitespace-only invariant broken: difference at position ${firstDiff}, original length ${originalNormalized.length}, patched length ${patchedNormalized.length}`,
+      firstDiff,
+      originalSample: originalNormalized.substring(Math.max(0, firstDiff - 20), firstDiff + 20),
+      patchedSample: patchedNormalized.substring(Math.max(0, firstDiff - 20), firstDiff + 20)
+    };
+  }
+  
+  return { valid: true };
+}
+
+/**
+ * Fix punctuation spacing: ensure space after .?! before letter
+ * This is a whitespace-only change (injecting space)
+ */
+function fixPunctuationSpacing(text) {
+  // Match: punctuation (.?!) optionally followed by quote/paren/brace, then letter
+  // Replace with: punctuation + quote/paren/brace + space + letter
+  return text.replace(/([.?!])(["')\]]?)([A-Za-zÅÄÖåäö])/g, '$1$2 $3');
+}
+
+/**
+ * Count sentences in a paragraph (split on .?!)
+ */
+function countSentencesInParagraph(para) {
+  return para.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
+}
+
+/**
+ * FORMAT PATCH - Deterministic 4-5 paragraphs, whitespace-only changes
+ * For B003: 4-5 paragraphs with empty lines between, max 2 lonely sentences
  * 
  * Rules:
- * - Only changes formatting (line breaks), NEVER words
- * - Creates 3-6 natural paragraphs
- * - Each paragraph: 1-3 sentences (prefer 2-3 for natural flow)
+ * - ONLY changes whitespace (line breaks, spaces) - NEVER content
+ * - Creates exactly 4-5 paragraphs (prefer 5 when possible)
+ * - Each paragraph: 2-3 sentences (prefer 2-3, allow 1-3 if needed)
  * - Max 2 lonely sentences (single-sentence paragraphs)
- * - Preserves all words exactly as they are
+ * - Preserves all non-whitespace characters exactly
  */
 function applyFormatPatch(output) {
   // Remove signature for processing
@@ -147,14 +200,27 @@ function applyFormatPatch(output) {
   const signature = signatureMatch ? signatureMatch[0] : '';
   const textWithoutSignature = signatureMatch ? output.slice(0, signatureMatch.index).trim() : output.trim();
   
-  // Preserve original text EXACTLY (including all whitespace) for word diff
-  const originalText = textWithoutSignature;
+  // Step 1: Fix punctuation spacing FIRST (whitespace-only: inject space after .?! before letter)
+  // This is a whitespace-only change (injecting space), so we apply it to original for comparison
+  const originalText = fixPunctuationSpacing(textWithoutSignature);
+  let text = originalText;
   
-  // Split into sentences - preserve exact words and punctuation
-  // Simple approach: split on sentence endings followed by whitespace
-  const sentences = textWithoutSignature.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
+  // Step 2: Extract existing paragraphs (split on double newlines or multiple newlines)
+  const existingParagraphs = text.split(/\n\s*\n+/).map(p => p.trim()).filter(p => p.length > 0);
   
-  if (sentences.length === 0) {
+  // Step 3: Split each paragraph into sentences (preserve punctuation)
+  // Match: sentence ending (.?!) optionally followed by quote/paren, then whitespace
+  const allSentences = [];
+  for (const para of existingParagraphs) {
+    const sentences = para.split(/(?<=[.!?])(["')\]]?)(\s+)/).filter(s => s.trim().length > 0);
+    // Clean up: remove empty strings and whitespace-only splits
+    const cleanSentences = sentences
+      .map(s => s.trim())
+      .filter(s => s.length > 0 && !/^["')\]]+$/.test(s));
+    allSentences.push(...cleanSentences);
+  }
+  
+  if (allSentences.length === 0) {
     return {
       success: false,
       error: 'NO_SENTENCES',
@@ -163,98 +229,121 @@ function applyFormatPatch(output) {
     };
   }
   
-  // Strategy: Create natural paragraphs (Brev-profil: 4-5 stycken, inte poesi)
-  // - Target 4-5 paragraphs (brev, inte poesi)
-  // - Each paragraph: 2-3 sentences (prefer 2-3 for natural flow, tanken får gå klart)
-  // - Max 2 lonely sentences (single-sentence paragraphs)
-  
-  const targetParagraphs = Math.min(5, Math.max(4, Math.ceil(sentences.length / 2.5)));
+  // Step 4: Build paragraphs targeting 4-5 (prefer 5)
+  const targetParagraphs = 5; // Always prefer 5
   const paragraphs = [];
   let lonelyCount = 0;
   let i = 0;
   
-  while (i < sentences.length) {
-    // Decide paragraph size: prefer 2-3 sentences, but allow 1 if needed (max 2 lonely)
+  // Calculate sentences per paragraph (aim for 2-3)
+  const avgSentencesPerPara = allSentences.length / targetParagraphs;
+  const idealSize = Math.max(2, Math.min(3, Math.round(avgSentencesPerPara)));
+  
+  while (i < allSentences.length) {
     let paragraphSize;
+    const remaining = allSentences.length - i;
+    const remainingParas = targetParagraphs - paragraphs.length;
     
-    if (paragraphs.length >= targetParagraphs - 1) {
-      // Last paragraph: take remaining sentences
-      paragraphSize = sentences.length - i;
-    } else if (lonelyCount < 2 && sentences.length - i > targetParagraphs - paragraphs.length) {
+    if (remainingParas === 1) {
+      // Last paragraph: take all remaining
+      paragraphSize = remaining;
+    } else if (lonelyCount < 2 && remaining > remainingParas) {
       // Can afford a lonely sentence (max 2 total)
       paragraphSize = 1;
       lonelyCount++;
     } else {
-      // Prefer 2-3 sentences per paragraph for natural flow
-      paragraphSize = Math.min(3, Math.max(2, Math.ceil((sentences.length - i) / (targetParagraphs - paragraphs.length))));
+      // Prefer 2-3 sentences per paragraph
+      paragraphSize = Math.min(3, Math.max(2, Math.ceil(remaining / remainingParas)));
     }
     
-    const paragraphSentences = sentences.slice(i, i + paragraphSize);
-    // Join sentences with single space (preserve exact words)
+    const paragraphSentences = allSentences.slice(i, i + paragraphSize);
     paragraphs.push(paragraphSentences.join(' '));
     i += paragraphSize;
   }
   
-  // Ensure we have 4-5 paragraphs (Brev-profil)
-  if (paragraphs.length < 4) {
-    // Too few paragraphs: split larger ones
-    while (paragraphs.length < 4 && paragraphs.some(p => p.split(/[.!?]/).length > 2)) {
-      const longIndex = paragraphs.findIndex(p => p.split(/[.!?]/).length > 2);
-      const longPara = paragraphs[longIndex];
-      const longSentences = longPara.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
-      if (longSentences.length >= 2) {
-        const mid = Math.ceil(longSentences.length / 2);
-        paragraphs.splice(longIndex, 1, 
-          longSentences.slice(0, mid).join(' '),
-          longSentences.slice(mid).join(' ')
-        );
-      } else {
-        break;
+  // Step 5: Ensure we have 4-5 paragraphs
+  // If too many (>5): merge shortest adjacent pairs
+  while (paragraphs.length > 5) {
+    // Find shortest adjacent pair
+    let shortestPairIndex = 0;
+    let shortestPairLength = paragraphs[0].length + paragraphs[1].length;
+    
+    for (let j = 0; j < paragraphs.length - 1; j++) {
+      const pairLength = paragraphs[j].length + paragraphs[j + 1].length;
+      if (pairLength < shortestPairLength) {
+        shortestPairLength = pairLength;
+        shortestPairIndex = j;
       }
+    }
+    
+    // Merge shortest pair
+    paragraphs[shortestPairIndex] = paragraphs[shortestPairIndex] + ' ' + paragraphs[shortestPairIndex + 1];
+    paragraphs.splice(shortestPairIndex + 1, 1);
+  }
+  
+  // If too few (<4): split longest paragraphs
+  while (paragraphs.length < 4) {
+    // Find longest paragraph with 2+ sentences
+    let longestIndex = -1;
+    let longestLength = 0;
+    
+    for (let j = 0; j < paragraphs.length; j++) {
+      const sentCount = countSentencesInParagraph(paragraphs[j]);
+      if (sentCount >= 2 && paragraphs[j].length > longestLength) {
+        longestLength = paragraphs[j].length;
+        longestIndex = j;
+      }
+    }
+    
+    if (longestIndex === -1) break; // Can't split further
+    
+    // Split at sentence boundary
+    const longPara = paragraphs[longestIndex];
+    const sentences = longPara.split(/(?<=[.!?])(["')\]]?)(\s+)/).filter(s => s.trim().length > 0 && !/^["')\]]+$/.test(s.trim()));
+    
+    if (sentences.length >= 2) {
+      const mid = Math.ceil(sentences.length / 2);
+      paragraphs.splice(longestIndex, 1,
+        sentences.slice(0, mid).join(' '),
+        sentences.slice(mid).join(' ')
+      );
+    } else {
+      break; // Can't split this one
     }
   }
   
-  if (paragraphs.length > 5) {
-    // Too many paragraphs: merge smaller ones (Brev-profil: max 5)
-    while (paragraphs.length > 5) {
-      const shortIndex = paragraphs.findIndex(p => p.split(/[.!?]/).length === 1);
-      if (shortIndex === -1) break;
-      
-      // Merge with next or previous paragraph
-      if (shortIndex < paragraphs.length - 1) {
-        paragraphs[shortIndex] = paragraphs[shortIndex] + ' ' + paragraphs[shortIndex + 1];
-        paragraphs.splice(shortIndex + 1, 1);
-      } else if (shortIndex > 0) {
-        paragraphs[shortIndex - 1] = paragraphs[shortIndex - 1] + ' ' + paragraphs[shortIndex];
-        paragraphs.splice(shortIndex, 1);
-      } else {
-        break;
-      }
-    }
-  }
+  // Step 6: Join paragraphs with double newlines and clean up whitespace
+  let patchedText = paragraphs.map(p => p.trim()).join('\n\n');
   
-  // Join paragraphs with empty lines
-  const patchedOutput = paragraphs.join('\n\n') + (signature ? '\n\n' + signature : '');
+  // Remove trailing spaces from all lines
+  patchedText = patchedText.split('\n').map(line => line.trimEnd()).join('\n');
   
-  // CRITICAL: Verify no words were changed (only formatting)
-  // Normalize both texts: remove all whitespace and compare character-by-character
-  const normalizeForComparison = (text) => text.replace(/\s+/g, '').toLowerCase();
-  const originalNormalized = normalizeForComparison(originalText);
-  const patchedNormalized = normalizeForComparison(patchedOutput.replace(/\n\n/g, ' ').replace(/\n/g, ' ').trim());
+  // Add signature back
+  const patchedOutput = patchedText + (signature ? '\n\n' + signature : '');
   
-  if (originalNormalized !== patchedNormalized) {
-    // Find first difference for debugging
-    let firstDiff = 0;
-    for (let i = 0; i < Math.min(originalNormalized.length, patchedNormalized.length); i++) {
-      if (originalNormalized[i] !== patchedNormalized[i]) {
-        firstDiff = i;
-        break;
-      }
-    }
+  // Step 7: CRITICAL - Verify whitespace-only invariant
+  const invariantCheck = verifyWhitespaceOnlyInvariant(originalText, patchedText);
+  if (!invariantCheck.valid) {
     return {
       success: false,
-      error: 'FORMAT_PATCH_CHANGED_WORDS',
-      message: `Format patch changed content: difference at position ${firstDiff}, original length ${originalNormalized.length}, patched length ${patchedNormalized.length}`,
+      error: 'FORMAT_PATCH_CHANGED_CONTENT',
+      message: invariantCheck.message,
+      patchedOutput: null,
+      debug: {
+        firstDiff: invariantCheck.firstDiff,
+        originalSample: invariantCheck.originalSample,
+        patchedSample: invariantCheck.patchedSample
+      }
+    };
+  }
+  
+  // Step 8: Verify paragraph count
+  const finalParagraphs = patchedText.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+  if (finalParagraphs.length < 4 || finalParagraphs.length > 5) {
+    return {
+      success: false,
+      error: 'PARAGRAPH_COUNT_INVALID',
+      message: `Format patch resulted in ${finalParagraphs.length} paragraphs (need 4-5)`,
       patchedOutput: null
     };
   }
@@ -270,9 +359,9 @@ function applyFormatPatch(output) {
     patchDescription: {
       type: 'format',
       location: 'full',
-      linesChanged: paragraphs.length,
-      budgetUsed: `${oldParagraphs} → ${paragraphs.length} paragraphs, ${oldBreaks} → ${newBreaks} line breaks`,
-      changes: [`Reformatted into ${paragraphs.length} paragraphs (${lonelyCount} lonely) with natural breaks`],
+      linesChanged: finalParagraphs.length,
+      budgetUsed: `${oldParagraphs} → ${finalParagraphs.length} paragraphs, ${oldBreaks} → ${newBreaks} line breaks`,
+      changes: [`Reformatted into ${finalParagraphs.length} paragraphs (${lonelyCount} lonely) with natural breaks`],
       wordDiff: 0
     }
   };

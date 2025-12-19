@@ -15,7 +15,8 @@
     "harness:eval": "node harness/runner.js eval --run ./harness/runs/latest",
     "harness:compare": "node harness/runner.js compare --run ./harness/runs/latest",
     "harness:test:regression": "node harness/test_regression.js",
-    "harness:test:challenge": "node harness/test_challenge_levels.js"
+    "harness:test:challenge": "node harness/test_challenge_levels.js",
+    "harness:test:format": "node harness/test_format_patch.js"
   },
   "dependencies": {
     "react": "^19.2.3",
