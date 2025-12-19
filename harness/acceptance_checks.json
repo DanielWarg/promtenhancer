@@ -33,7 +33,7 @@
           {
             "id": "B003",
             "title": "Whitespace",
-            "description": "Whitespace: 8+ radbrytningar, 3+ ensamma meningar",
+            "description": "Naturligt brevflöde: 3-6 stycken, max 2 ensamma rader, 8+ radbrytningar (undvik dikt/telegramstil)",
             "type": "heuristic",
             "scope": "full_text",
             "weight": 16

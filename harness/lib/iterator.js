@@ -131,79 +131,30 @@ export function determinePatch(failedChecks) {
 }
 
 /**
- * FORMAT PATCH - Only add line breaks, no word changes
- * For B003: 8+ line breaks, 3+ lonely sentences
+ * FORMAT PATCH - Create natural paragraph breaks, not many lonely sentences
+ * For B003: 3-6 paragraphs with empty lines between, max 2 lonely sentences
  */
 function applyFormatPatch(output) {
-  let lines = output.split('\n');
-  let newLines = [];
-  let changesMade = [];
+  // Remove signature for processing
+  const signatureMatch = output.match(/(\/[A-Z][^\n]*\n?[^\n]*)$/);
+  const signature = signatureMatch ? signatureMatch[0] : '';
+  const textWithoutSignature = signatureMatch ? output.slice(0, signatureMatch.index).trim() : output.trim();
   
-  // Strategy 1: Split long paragraphs at sentence boundaries
-  const expandedLines = [];
-  for (const line of lines) {
-    const trimmed = line.trim();
-    
-    // If this is a long paragraph (multiple sentences), split it
-    if (trimmed.length > 100 && (trimmed.match(/[.!?]/g) || []).length > 1) {
-      // Split at sentence boundaries, keeping punctuation
-      const sentences = trimmed.split(/(?<=[.!?])\s+/);
-      for (const sentence of sentences) {
-        if (sentence.trim()) {
-          expandedLines.push(sentence.trim());
-          changesMade.push(`Split paragraph into sentences`);
-        }
-      }
-    } else {
-      expandedLines.push(line);
-    }
+  // Split into sentences
+  const sentences = textWithoutSignature.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
+  
+  // Group sentences into 3-6 paragraphs (natural flow)
+  const targetParagraphs = Math.min(6, Math.max(3, Math.ceil(sentences.length / 3)));
+  const sentencesPerParagraph = Math.ceil(sentences.length / targetParagraphs);
+  
+  const paragraphs = [];
+  for (let i = 0; i < sentences.length; i += sentencesPerParagraph) {
+    const paragraphSentences = sentences.slice(i, i + sentencesPerParagraph);
+    paragraphs.push(paragraphSentences.join(' '));
   }
   
-  // Strategy 2: Add empty lines around short sentences to make them "lonely"
-  for (let i = 0; i < expandedLines.length; i++) {
-    const line = expandedLines[i];
-    const trimmed = line.trim();
-    const prevLine = expandedLines[i - 1]?.trim() || '';
-    const nextLine = expandedLines[i + 1]?.trim() || '';
-    const lastNewLine = newLines[newLines.length - 1]?.trim() || '';
-    
-    // If this is a short-ish sentence (< 80 chars) that ends with punctuation
-    if (trimmed.length > 0 && trimmed.length < 80 && 
-        (trimmed.endsWith('.') || trimmed.endsWith('?') || trimmed.endsWith('!'))) {
-      
-      // Add empty line before if previous isn't empty
-      if (i > 0 && lastNewLine !== '' && !lastNewLine.startsWith('/')) {
-        newLines.push('');
-        changesMade.push(`Added break before: "${trimmed.substring(0, 25)}..."`);
-      }
-      
-      newLines.push(line);
-      
-      // Add empty line after
-      if (i < expandedLines.length - 1 && nextLine !== '' && !nextLine.startsWith('/')) {
-        newLines.push('');
-        changesMade.push(`Added break after: "${trimmed.substring(0, 25)}..."`);
-      }
-    } else if (trimmed === '') {
-      // Keep existing empty lines but don't double up
-      if (lastNewLine !== '') {
-        newLines.push(line);
-      }
-    } else {
-      newLines.push(line);
-    }
-  }
-  
-  // Clean up: remove consecutive empty lines (keep max 1)
-  const cleanedLines = [];
-  for (const line of newLines) {
-    const lastCleaned = cleanedLines[cleanedLines.length - 1];
-    if (!(line.trim() === '' && lastCleaned?.trim() === '')) {
-      cleanedLines.push(line);
-    }
-  }
-  
-  const patchedOutput = cleanedLines.join('\n');
+  // Join paragraphs with empty lines
+  const patchedOutput = paragraphs.join('\n\n') + (signature ? '\n\n' + signature : '');
   
   // CRITICAL: Verify no words were changed
   const diffResult = wordDiff(output, patchedOutput);
@@ -226,9 +177,9 @@ function applyFormatPatch(output) {
     patchDescription: {
       type: 'format',
       location: 'full',
-      linesChanged: changesMade.length,
-      budgetUsed: `${oldBreaks} → ${newBreaks} line breaks`,
-      changes: changesMade.slice(0, 5),
+      linesChanged: paragraphs.length,
+      budgetUsed: `${oldBreaks} → ${newBreaks} line breaks (${paragraphs.length} paragraphs)`,
+      changes: [`Reformatted into ${paragraphs.length} paragraphs with natural breaks`],
       wordDiff: 0
     }
   };

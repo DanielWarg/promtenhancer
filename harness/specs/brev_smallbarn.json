@@ -16,8 +16,8 @@
     "max_chars": 1200,
     "min_chars": 800,
     "signature": {
-      "name": "Ann-Christin",
-      "tagline": "Ninja-psykolog och tidigare expert på att känna stress för fel saker"
+      "name": "Test-User",
+      "tagline": "Test-signatur för att verifiera att signatur kommer från spec"
     }
   },
   "controls": {

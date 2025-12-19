@@ -96,12 +96,170 @@ function buildInternalPrompt(spec, styleDna, examples) {
   // Get friction value (1-5) for tonal adjustment
   const friction = controls?.friction || 3;
   
-  // Build detailed escalation guidance based on friction (only for warm_provocation)
+  // Build detailed escalation guidance based on friction
   let tonalGuidance = '';
   let hookGuidance = '';
   let rhetoricalGuidance = '';
   
-  if (profile === 'warm_provocation') {
+  if (profile === 'brev') {
+    // Brev-profil: Differentiering baserad på inre position med förbättrad flow och längd
+    const brevLevels = {
+      1: {
+        title: 'Närvaro utan perspektiv',
+        innerPosition: 'Jag orkar inte tänka längre än idag',
+        perspective: 'Nuet. Ingen framtid. Ingen analys.',
+        tone: 'Utmattad, fragmenterad.',
+        structure: 'Korta meningar i naturliga stycken. Pauser. Ofullständighet.',
+        forbidden: 'FÅR INTE innehålla: tröst, lärdom, systemkritik, slutsats, telegramstil.',
+        ending: 'Fragmenterat, ingen avslutning. Bara närvaro.',
+        openingBank: [
+          { category: 'tidpunkt', examples: ['Klockan är sju på morgonen.', 'Kvällsljuset faller.', 'Mitt på dagen.'] },
+          { category: 'kropp', examples: ['Hjärtat slår fort.', 'Tröttheten sitter i axlarna.', 'Pulsen i tinningen.'] },
+          { category: 'ljud', examples: ['Telefonen ringer.', 'Tvättmaskinen går.', 'Teams-plinget.'] },
+          { category: 'miljö', examples: ['Hallgolvet är kallt.', 'Köksbordet fullt.', 'Barnrummet tyst.'] }
+        ]
+      },
+      2: {
+        title: 'Igenkänning utan lösning',
+        innerPosition: 'Jag ser det, men kan inte förändra det',
+        perspective: 'Observerande.',
+        tone: 'Varsam igenkänning.',
+        structure: '"Jag ser dig", men ingen förändring erbjuds. Naturliga stycken.',
+        forbidden: 'FÅR INTE innehålla: råd, framtidsperspektiv, systemkritik, telegramstil.',
+        ending: 'Igenkänning utan lösning. "Det är allt jag vet just nu."',
+        openingBank: [
+          { category: 'tidpunkt', examples: ['Du som sitter där klockan fem.', 'Morgonen kommer tidigt.', 'Kvällens tystnad.'] },
+          { category: 'kropp', examples: ['Du som känner spänningen.', 'Händerna darrar lätt.', 'Kroppen protesterar.'] },
+          { category: 'ljud', examples: ['Du som hör telefonen.', 'Ljudet av gråt.', 'Tystnaden som växer.'] },
+          { category: 'miljö', examples: ['Du som står i köket.', 'Rummet är tomt.', 'Vardagsrummets ljus.'] }
+        ]
+      },
+      3: {
+        title: 'Efterhandsperspektiv',
+        innerPosition: 'Det var större än jag förstod då',
+        perspective: 'Då → nu.',
+        tone: 'Öm insikt.',
+        structure: 'Minnesberättelse + stillsam förståelse. Naturliga stycken.',
+        forbidden: 'FÅR INTE bli: tröstande eller normativ, telegramstil.',
+        ending: 'Mjuk insikt. "Det var livet."',
+        openingBank: [
+          { category: 'tidpunkt', examples: ['Jag minns morgonen då.', 'Det var en kväll för länge sedan.', 'Tidpunkten jag glömmer.'] },
+          { category: 'kropp', examples: ['Jag minns känslan i kroppen.', 'Hjärtat som slog.', 'Tröttheten som kom.'] },
+          { category: 'ljud', examples: ['Jag minns ljudet.', 'Telefonen som ringde.', 'Tystnaden efteråt.'] },
+          { category: 'miljö', examples: ['Jag minns rummet.', 'Köket där vi stod.', 'Soffan där vi satt.'] }
+        ]
+      },
+      4: {
+        title: 'Existentiell/systemisk reflektion',
+        innerPosition: 'Det här säger något om hur vi lever',
+        perspective: 'Individ → system → liv.',
+        tone: 'Still, reflekterande.',
+        structure: 'Skiftar fokus från individ till hur världen är byggd. Naturliga stycken.',
+        forbidden: 'FÅR INTE bli: politisk, aktivistisk eller lösningsorienterad, telegramstil.',
+        ending: 'Systemisk reflektion. "Och kanske är det där vi måste börja."',
+        openingBank: [
+          { category: 'tidpunkt', examples: ['Det finns en tidpunkt.', 'När dagen blir natt.', 'I ögonblicket mellan.'] },
+          { category: 'kropp', examples: ['Kroppen minns.', 'Hjärtat vet.', 'Känslan som finns.'] },
+          { category: 'ljud', examples: ['Det finns ett ljud.', 'Tystnaden som talar.', 'Ljudet av förväntan.'] },
+          { category: 'miljö', examples: ['Det finns ett rum.', 'Mellanrummet.', 'Platsen där vi möts.'] }
+        ]
+      },
+      5: {
+        title: 'Försonad klarhet',
+        innerPosition: 'Det var aldrig fel. Det var mänskligt.',
+        perspective: ' Erkännande.',
+        tone: 'Klar, lugn, accepterande.',
+        structure: 'Upprepning som bekräftelse ("Det var aldrig fel…"). Naturliga stycken. Max 2-3 upprepningar med varierad meningsbyggnad.',
+        forbidden: 'FÅR INTE innehålla: råd, uppmaningar, skuld, poetisk mantra-loop, telegramstil.',
+        ending: 'Försonad klarhet. "Det var mänskligt."',
+        openingBank: [
+          { category: 'tidpunkt', examples: ['Det var aldrig fel.', 'Tidpunkten spelade ingen roll.', 'I det ögonblicket.'] },
+          { category: 'kropp', examples: ['Kroppen visste.', 'Hjärtat förstod.', 'Känslan var rätt.'] },
+          { category: 'ljud', examples: ['Ljudet sa ingenting.', 'Tystnaden var okej.', 'Det fanns inget att säga.'] },
+          { category: 'miljö', examples: ['Rummet var rätt.', 'Platsen spelade ingen roll.', 'Det var där vi var.'] }
+        ]
+      }
+    };
+    
+    const level = brevLevels[friction] || brevLevels[3];
+    
+    // Välj öppningskategori (variera mellan nivåer)
+    const openingCategory = level.openingBank[friction % level.openingBank.length];
+    
+    tonalGuidance = `
+# BREV-PROFIL: INRE POSITION (Nivå ${friction}/5: ${level.title})
+
+VIKTIGASTE REGELN:
+Alla nivåer (1–5) MÅSTE vara tydligt differentierade i:
+- inre position
+- tidsrörelse
+- emotionell temperatur
+- typ av avslut
+
+De ska kännas skrivna av samma person – men från olika mentala platser i livet.
+
+## Nivå ${friction} Definition (OBLIGATORISKT)
+
+**Inre position:** ${level.innerPosition}
+**Perspektiv:** ${level.perspective}
+**Ton:** ${level.tone}
+**Struktur:** ${level.structure}
+**${level.forbidden}
+
+**Avslut:** ${level.ending}
+
+## LÄNGDGUARD (KRITISKT)
+- Sikta på 900–1100 tecken (så vi klarar 800–1200 även med variation)
+- Om output riskerar att bli kort: lägg in ett extra mikro-minne eller sensorisk detalj (ljud, ljus, kroppskänsla, tid, plats) + en lågmäld reflektion (1–2 meningar) – men utan råd
+- Om output riskerar att bli lång: kapa bort förklarande meningar (meta), behåll konkreta bilder
+
+## FORMATERINGSGUARD (Flow, inte dikt)
+- Förbjud "telegramradning" (t.ex. "Kaffe. Kallt. Möte."). Korta meningar är okej, men de ska fortfarande bilda naturliga stycken
+- Minst 3 och max 6 stycken totalt
+- Varje stycke 1–3 meningar
+- VIKTIGT: Varje stycke ska separeras med en tom rad (radbrytning). Skriv med naturliga radbrytningar mellan styckena.
+- Tillåt EN ensam rad ("lonely sentence") max 2 gånger per text, och endast om den känns som en naturlig paus (inte rytm/rim)
+- Inga listor/bullets i Brev-profilen. Brev ska kännas som brev, inte LinkedIn-format
+- Skriv i naturliga stycken (3–6 stycken), inga punktlistor, undvik fragment som känns poetiska/telegram
+- Exempel på korrekt formatering:
+  Du som sitter där.
+
+  Jag minns känslan.
+
+  Det är okej att känna så.
+
+## ÖPPNING (Variera aktivt)
+Välj öppning från kategori: ${openingCategory.category}
+Exempel: ${openingCategory.examples.join(', ')}
+- Undvik att samma kategori återkommer i flera nivåer i samma körning
+- Variera öppningar: tidpunkt, kropp, ljud, miljö
+
+## Gemensamma regler (alla nivåer)
+- Jag-form
+- Konkreta vardagsbilder (tid, kropp, plats)
+- Ingen imperativ
+- Ingen coach-retorik
+- Ingen CTA
+- Signatur MÅSTE komma från spec (aldrig hårdkodad)
+- Varje nivå ska kunna läsas bredvid de andra och kännas tydligt annorlunda
+
+## KRITISKT: Differentiering mellan nivåer
+Anta att alla nivåer jämförs sida vid sida.
+Om två nivåer känns för lika → DU HAR MISSLYCKATS.
+
+**Förbjudet mellan nivåer:**
+- ❌ INGA identiska meningar mellan nivåer
+- ❌ INGA identiska öppningar
+- ❌ INGA identiska avslut
+- ❌ INGA identiska emotionella bågar
+- ❌ INGA identiska tidsrörelser
+
+**Tillåtet:**
+- ✅ Samma röst, olika inre positioner
+- ✅ Språket ska kännas skrivet, inte genererat
+- ✅ Varje nivå ska kunna läsas som samma person på olika dagar i livet
+`;
+  } else if (profile === 'warm_provocation') {
     // Retorisk skärpa per nivå
     const rhetoricalLevels = {
       1: {
@@ -348,7 +506,7 @@ ${constraints.signature?.name ? `/${constraints.signature.name}` : ''}${constrai
 # OUTPUT
 Skriv ENDAST LinkedIn-inlägget. Ingen inledning, ingen förklaring.
 Börja direkt med texten och avsluta med signaturen.
-VIKTIGT: Avsluta ALLTID med en spegelfråga, aldrig med uppmaning eller råd.
+${profile === 'brev' ? 'VIKTIGT: Skriv i naturliga stycken (3–6 stycken), inga punktlistor, undvik fragment som känns poetiska/telegram. Avsluta med mjuk slutsats, ingen hård CTA.' : 'VIKTIGT: Avsluta ALLTID med en spegelfråga, aldrig med uppmaning eller råd.'}
 `;
 
   return prompt;

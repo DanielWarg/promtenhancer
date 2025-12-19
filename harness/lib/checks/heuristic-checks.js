@@ -103,18 +103,45 @@ function checkB002(text) {
 }
 
 /**
- * B003 - Whitespace: 8+ line breaks, 3+ lonely sentences
+ * B003 - Whitespace: Naturligt brevflöde med luft, inte dikt/telegram
+ * Kräver: minst 3-6 stycken, max 2 ensamma rader, minst 3 tomma rader (radbrytningar mellan stycken)
  */
 function checkB003(text) {
-  const lineBreaks = countLineBreaks(text);
   const lonelySentences = countLonelySentences(text);
   
-  const passBreaks = lineBreaks >= 8;
-  const passLonely = lonelySentences >= 3;
+  // Räkna stycken (radbrytningar som skapar tomma rader)
+  const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+  const paragraphCount = paragraphs.length;
+  
+  // Räkna tomma rader (radbrytningar mellan stycken)
+  const emptyLines = (text.match(/\n\s*\n/g) || []).length;
+  
+  // Krav: minst 3 och max 6 stycken (naturligt brevflöde)
+  const passParagraphs = paragraphCount >= 3 && paragraphCount <= 6;
+  
+  // Krav: minst 3 tomma rader (luft mellan stycken) - detta säkerställer att texten har naturligt brevflöde
+  const passBreaks = emptyLines >= 3;
+  
+  // Krav: max 2 ensamma rader (undvik diktkänsla)
+  const passLonely = lonelySentences <= 2;
+  
+  // Undvik telegramstil: kontrollera att det inte finns för många korta meningar på egna rader
+  const lines = text.split('\n').filter(l => l.trim().length > 0);
+  const shortLines = lines.filter(l => {
+    const trimmed = l.trim();
+    // Undvik signaturrader
+    if (trimmed.match(/^\/[A-Z]/)) return false;
+    // Kort rad med max 1 mening
+    const sentences = trimmed.split(/[.!?]/).filter(s => s.trim().length > 0);
+    return sentences.length <= 1 && trimmed.length < 50;
+  });
+  const tooManyShortLines = shortLines.length > 5; // För många korta rader = telegramstil
+  
+  const pass = passParagraphs && passBreaks && passLonely && !tooManyShortLines;
   
   return {
-    pass: passBreaks && passLonely,
-    notes: `Line breaks: ${lineBreaks}/8, Lonely sentences: ${lonelySentences}/3`
+    pass,
+    notes: `Paragraphs: ${paragraphCount} (3-6 ok), Empty lines: ${emptyLines}/3, Lonely sentences: ${lonelySentences} (max 2), Short lines: ${shortLines.length}${tooManyShortLines ? ' (telegramstil!)' : ''}`
   };
 }
 
