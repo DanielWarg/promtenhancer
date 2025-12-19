@@ -3,6 +3,32 @@
  * Runtime Configuration - Central config for offline/network modes
  */
 
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Load .env from project root FIRST, before checking for API key
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const envPath = path.resolve(__dirname, '..', '..', '.env');
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, 'utf-8');
+  envContent.split('\n').forEach(line => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) return;
+    
+    const equalIndex = trimmed.indexOf('=');
+    if (equalIndex === -1) return;
+    
+    const key = trimmed.substring(0, equalIndex).trim();
+    const value = trimmed.substring(equalIndex + 1).trim();
+    
+    if (key && value && !process.env[key]) {
+      process.env[key] = value;
+    }
+  });
+}
+
 /**
  * Check if network is disabled via environment variable or flag
  */
@@ -72,4 +98,5 @@ export function printConfigBanner() {
     console.log('');
   }
 }
+
 

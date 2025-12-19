@@ -1,0 +1,29 @@
+{
+  "meta": {
+    "created_at": "2025-12-19T14:00:00Z",
+    "version": "1.1",
+    "harness_version": "1.1.0"
+  },
+  "channel": "linkedin",
+  "profile": "brev",
+  "topic": "Småbarnsförälder som kombinerar jobb och föräldraskap",
+  "audience": "Personer mitt i småbarnsåren som försöker kombinera jobb och föräldraskap",
+  "user_input": "Skriv ett personligt brev i jag-form till en person som befinner sig mitt i småbarnsåren och försöker kombinera jobb och föräldraskap. Texten ska vara varm, eftertänksam och mänsklig – inte coachande eller peppig. Använd konkreta vardagsbilder (t.ex. vab, möten, deadlines, feber, morgnar, tankar som \"jag ska bara\"). Låt avsändaren visa igenkänning genom egen erfarenhet (\"jag har varit där\") och gärna ett perspektiv från framtiden eller efteråt. Undvik råd, imperativ och snabba lösningar. Avlasta skuld snarare än att ställa krav. Om systemkritik finns, rikta den mot strukturer och förväntningar – inte individen. Avsluta med en stillsam bekräftelse till mottagaren, inte en uppmaning. Språket ska vara lågmält, ärligt och kännas som ett brev – inte ett LinkedIn-inlägg optimerat för räckvidd.",
+  "constraints": {
+    "no_asterisks": true,
+    "no_swearing": true,
+    "language": "sv",
+    "max_chars": 1200,
+    "min_chars": 600,
+    "signature": {
+      "name": "Test-User",
+      "tagline": "Test tagline för att verifiera att signatur inte är hårdkodad"
+    }
+  },
+  "controls": {
+    "friction": 4,
+    "warmth": 5,
+    "story": 4,
+    "seed": 42
+  }
+}

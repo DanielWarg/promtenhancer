@@ -1,0 +1,111 @@
+{
+  "version": "v1",
+  "timestamp": "2025-12-19T13:08:13.102Z",
+  "profile": "brev",
+  "scores": {
+    "compliance_score": 84,
+    "quality_score": 100,
+    "quality_status": null,
+    "total_score": 90,
+    "total_score_formula": "0.6 * compliance + 0.4 * quality"
+  },
+  "targets": {
+    "compliance_target": 95,
+    "quality_target": 85,
+    "compliance_met": false,
+    "quality_met": true,
+    "run_status": "INCOMPLETE"
+  },
+  "per_check": [
+    {
+      "id": "B001a",
+      "title": "Emotionell närhet i öppningen",
+      "type": "heuristic",
+      "scope": "first_screen",
+      "weight": 12,
+      "pass": true,
+      "notes": "Opening has emotional closeness"
+    },
+    {
+      "id": "B002",
+      "title": "Mikrodetaljer",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 18,
+      "pass": true,
+      "notes": "Found 3 micro-details: Klockan, dator, lätt"
+    },
+    {
+      "id": "B003",
+      "title": "Whitespace",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 16,
+      "pass": false,
+      "notes": "Line breaks: 5/8, Lonely sentences: 1/3"
+    },
+    {
+      "id": "B007",
+      "title": "Längd",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 6,
+      "pass": true,
+      "notes": "Length: 1165 chars (target: 800-1200)"
+    },
+    {
+      "id": "G001",
+      "title": "No exact example line reuse",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 6,
+      "pass": true,
+      "notes": "No cloning detected"
+    },
+    {
+      "id": "B005",
+      "title": "Reframing",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 55,
+      "pass": true,
+      "notes": ". Texten visar en tydlig rörelse från skuld och stress till att erkänna mänsklighet och tillåtelse att vara ofullkomlig. Reframingen känns äkta och ger läsaren en känsla av acceptans utan att bli peppig."
+    },
+    {
+      "id": "B008",
+      "title": "Ingen pepp/klyscha",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 45,
+      "pass": true,
+      "notes": ". Texten innehåller konkreta detaljer om vardagen och känslor, vilket ger en genuin känsla av reflektion. Tonen är varm och empatisk utan att vara överdrivet positiv eller klyschig."
+    },
+    {
+      "id": "B001",
+      "title": "Direct address",
+      "type": "regex",
+      "scope": "first_screen",
+      "weight": 18,
+      "pass": true,
+      "notes": "Found: \"Till dig som\""
+    },
+    {
+      "id": "B004",
+      "title": "Sårbar auktoritet",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 14,
+      "pass": true,
+      "notes": "Found: \"Jag minns\""
+    },
+    {
+      "id": "B006",
+      "title": "Mjuk slutsats",
+      "type": "regex",
+      "scope": "last_screen",
+      "weight": 10,
+      "pass": true,
+      "notes": "No forbidden patterns found"
+    }
+  ]
+}

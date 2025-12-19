@@ -1,0 +1,27 @@
+[GENERATION SKIPPED - LLM DISABLED]
+
+OPENAI_API_KEY not set
+
+---
+
+Du säger att du är öppen för feedback.
+Men är du det verkligen?
+
+Det är lätt att tro att man är konflikthanterande.
+Men i praktiken undviker vi jobbiga samtal.
+
+Istället för att ta det där samtalet:
+– Skriver vi ett "snällt" DM istället för att ringa.
+– Nickar vi i mötet men ventilerar i korridoren.
+– Säger vi "vi tar det sen" och menar "aldrig".
+
+Nej nej. Inte du.
+Du "gillar bara inte onödigt drama".
+
+Det är okej att känna sig obekväm.
+Men vad kostar det att alltid gå omvägar?
+
+/Test-User
+Test tagline för att verifiera att signatur inte är hårdkodad
+
+[DUMMY OUTPUT - Genererat utan API-nyckel för testning]

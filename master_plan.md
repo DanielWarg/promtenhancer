@@ -806,6 +806,31 @@ VIKTIGT: Dessa är byggklossar för FORM, inte innehåll.
 
 ## 10. CLI och npm scripts
 
+### Miljövariabler och API-nyckel
+
+**VIKTIGT:** API-nyckel konfigureras via `.env`-fil i projektets root.
+
+1. **Skapa `.env`-fil i root:**
+   ```bash
+   # I projektets root (/Users/evil/Desktop/EVIL/PROJECT/Promtenhancer/promtenhancer/)
+   OPENAI_API_KEY=sk-din-api-nyckel-här
+   PORT=3001
+   ```
+
+2. **Hämta API-nyckel:**
+   - Gå till https://platform.openai.com/api-keys
+   - Skapa en ny API-nyckel
+   - Kopiera nyckeln till `.env`-filen
+
+3. **Verifiera att `.env` läses:**
+   - `harness/runner.js` läser automatiskt `.env` från root
+   - `server/index.js` använder `dotenv.config()` för att läsa `.env`
+   - Om `OPENAI_API_KEY` saknas körs systemet i "no-network mode" (dummy output)
+
+4. **För tester:**
+   - `npm run harness:test:challenge` kräver `OPENAI_API_KEY` för riktiga tester
+   - Utan API-nyckel körs testerna med dummy output (verifierar logik, inte faktisk generation)
+
 ### runner.js kommandon
 
 ```bash

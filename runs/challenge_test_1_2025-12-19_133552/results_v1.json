@@ -1,0 +1,117 @@
+{
+  "version": "v1",
+  "timestamp": "2025-12-19T12:36:06.851Z",
+  "profile": "warm_provocation",
+  "scores": {
+    "compliance_score": 75,
+    "quality_score": 70,
+    "quality_status": null,
+    "total_score": 73,
+    "total_score_formula": "0.6 * compliance + 0.4 * quality"
+  },
+  "targets": {
+    "compliance_target": 95,
+    "quality_target": 85,
+    "compliance_met": false,
+    "quality_met": false,
+    "run_status": "INCOMPLETE"
+  },
+  "per_check": [
+    {
+      "id": "G001",
+      "title": "No exact example line reuse",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 5,
+      "pass": true,
+      "notes": "No cloning detected"
+    },
+    {
+      "id": "W001a",
+      "title": "Hook inom första meningar",
+      "type": "heuristic",
+      "scope": "first_screen",
+      "weight": 15,
+      "pass": false,
+      "notes": "First 3 sentences lack direct address (du/ni)"
+    },
+    {
+      "id": "W007b",
+      "title": "Inga imperativ",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 10,
+      "pass": false,
+      "notes": "No self-involvement found (jag/vi). Text may feel preachy."
+    },
+    {
+      "id": "W001",
+      "title": "Avslöjande hook",
+      "type": "llm_judge",
+      "scope": "first_screen",
+      "weight": 40,
+      "pass": true,
+      "notes": ". Öppningen avslöjar att läsaren kanske inte är så öppen för feedback som de vill tro, vilket skapar en känsla av att bli sedd snarare än informerad. Det finns en kontrast mellan påståendet om öppenhet och de undvikande fraserna som används."
+    },
+    {
+      "id": "W005",
+      "title": "Metafor som bär insikt",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": true,
+      "notes": ". Texten innehåller en konkret och visuell metafor om att lägga ett lakan över skräp, vilket bär en insikt om att konflikter inte försvinner bara för att de ignoreras. Metaforen skapar igenkänning och stannar kvar genom att koppla till en vanlig upplevelse på arbetsplatsen."
+    },
+    {
+      "id": "W007",
+      "title": "Inte moralpredikan",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": false,
+      "notes": "Score: 50/100 (threshold: 70). Blandad ton, ibland inkluderande men också dömande. Avsändaren ställer frågor som kan kännas konfrontativa.",
+      "score": 50,
+      "threshold": 70,
+      "reasons": [
+        "Blandad ton, ibland inkluderande men också dömande.",
+        "Avsändaren ställer frågor som kan kännas konfrontativa."
+      ]
+    },
+    {
+      "id": "W002",
+      "title": "Vardagsmiljö",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"Slack\""
+    },
+    {
+      "id": "W003",
+      "title": "Listsekvens",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"– \"Vi tar det sen\"…\n– \"Det är kanske inte så viktigt\"…\n–\""
+    },
+    {
+      "id": "W004",
+      "title": "Rytmisk paus",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\nNej.\""
+    },
+    {
+      "id": "W006",
+      "title": "Signaturblock",
+      "type": "regex",
+      "scope": "last_screen",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\n/\""
+    }
+  ]
+}

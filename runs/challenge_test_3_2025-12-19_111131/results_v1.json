@@ -1,0 +1,117 @@
+{
+  "version": "v1",
+  "timestamp": "2025-12-19T10:11:41.286Z",
+  "profile": "warm_provocation",
+  "scores": {
+    "compliance_score": 90,
+    "quality_score": 70,
+    "quality_status": null,
+    "total_score": 82,
+    "total_score_formula": "0.6 * compliance + 0.4 * quality"
+  },
+  "targets": {
+    "compliance_target": 95,
+    "quality_target": 85,
+    "compliance_met": false,
+    "quality_met": false,
+    "run_status": "INCOMPLETE"
+  },
+  "per_check": [
+    {
+      "id": "G001",
+      "title": "No exact example line reuse",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 5,
+      "pass": true,
+      "notes": "No cloning detected"
+    },
+    {
+      "id": "W001a",
+      "title": "Hook inom första meningar",
+      "type": "heuristic",
+      "scope": "first_screen",
+      "weight": 15,
+      "pass": true,
+      "notes": "Hook has direct address and contrast"
+    },
+    {
+      "id": "W007b",
+      "title": "Inga imperativ",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 10,
+      "pass": false,
+      "notes": "Found 1 imperative(s): Det är dags att"
+    },
+    {
+      "id": "W001",
+      "title": "Avslöjande hook",
+      "type": "llm_judge",
+      "scope": "first_screen",
+      "weight": 40,
+      "pass": true,
+      "notes": ". Textens öppning konfronterar läsaren med en motsägelse mellan deras påstående och verklighet, vilket skapar en känsla av att bli sedd snarare än informerad. Denna friktion uppmanar till reflektion över deras beteende."
+    },
+    {
+      "id": "W005",
+      "title": "Metafor som bär insikt",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": true,
+      "notes": ". Texten innehåller en konkret och visuell metafor om att \"sätta en plåster på en krossad arm\", som bär en insikt om att undvikande beteenden inte löser problem. Metaforen skapar igenkänning och stannar kvar genom att tydligt illustrera konsekvenserna av konflikträdsla."
+    },
+    {
+      "id": "W007",
+      "title": "Inte moralpredikan",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": false,
+      "notes": "Score: 30/100 (threshold: 70). Fingerpekning och dömande ton. Avsändaren står utanför och kritiserar mottagaren.",
+      "score": 30,
+      "threshold": 70,
+      "reasons": [
+        "Fingerpekning och dömande ton.",
+        "Avsändaren står utanför och kritiserar mottagaren."
+      ]
+    },
+    {
+      "id": "W002",
+      "title": "Vardagsmiljö",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"korridor\""
+    },
+    {
+      "id": "W003",
+      "title": "Listsekvens",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"– viskar i korridoren om problemet med kollegan\n – skickar passivt aggressiva meddelanden i Slack\n –\""
+    },
+    {
+      "id": "W004",
+      "title": "Rytmisk paus",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\nNej.\""
+    },
+    {
+      "id": "W006",
+      "title": "Signaturblock",
+      "type": "regex",
+      "scope": "last_screen",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\n/\""
+    }
+  ]
+}

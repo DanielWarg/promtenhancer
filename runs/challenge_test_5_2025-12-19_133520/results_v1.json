@@ -1,0 +1,117 @@
+{
+  "version": "v1",
+  "timestamp": "2025-12-19T12:35:30.946Z",
+  "profile": "warm_provocation",
+  "scores": {
+    "compliance_score": 60,
+    "quality_score": 100,
+    "quality_status": null,
+    "total_score": 76,
+    "total_score_formula": "0.6 * compliance + 0.4 * quality"
+  },
+  "targets": {
+    "compliance_target": 95,
+    "quality_target": 85,
+    "compliance_met": false,
+    "quality_met": true,
+    "run_status": "INCOMPLETE"
+  },
+  "per_check": [
+    {
+      "id": "G001",
+      "title": "No exact example line reuse",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 5,
+      "pass": true,
+      "notes": "No cloning detected"
+    },
+    {
+      "id": "W001a",
+      "title": "Hook inom första meningar",
+      "type": "heuristic",
+      "scope": "first_screen",
+      "weight": 15,
+      "pass": false,
+      "notes": "First 3 sentences lack direct address (du/ni)"
+    },
+    {
+      "id": "W007b",
+      "title": "Inga imperativ",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 10,
+      "pass": false,
+      "notes": "No self-involvement found (jag/vi). Text may feel preachy."
+    },
+    {
+      "id": "W001",
+      "title": "Avslöjande hook",
+      "type": "llm_judge",
+      "scope": "first_screen",
+      "weight": 40,
+      "pass": true,
+      "notes": ". Textens öppning konfronterar läsaren med en insikt om att de undviker svåra samtal, vilket skapar en känsla av att bli sedd snarare än informerad. Det finns en tydlig kontrast mellan det som uppfattas som diplomatiskt och den verkliga undvikande beteendet."
+    },
+    {
+      "id": "W005",
+      "title": "Metafor som bär insikt",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": true,
+      "notes": ". Texten innehåller en konkret och visuell metafor i \"cirkeln av osäkerhet\" som bär en insikt om hur undvikande beteenden påverkar relationer. Den skapar igenkänning och stannar kvar genom att beskriva en dynamik som många kan relatera till."
+    },
+    {
+      "id": "W007",
+      "title": "Inte moralpredikan",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": true,
+      "notes": "Score: 70/100 (threshold: 70). Inkluderande språk med 'vi' och 'alla runt omkring'. Avsändaren delar egen erfarenhet men har en något pedagogisk ton.",
+      "score": 70,
+      "threshold": 70,
+      "reasons": [
+        "Inkluderande språk med 'vi' och 'alla runt omkring'.",
+        "Avsändaren delar egen erfarenhet men har en något pedagogisk ton."
+      ]
+    },
+    {
+      "id": "W002",
+      "title": "Vardagsmiljö",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"korridor\""
+    },
+    {
+      "id": "W003",
+      "title": "Listsekvens",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"– Vi pratar i korridoren, men tystnar i mötet.\n – Vi skickar passivt aggressiva meddelanden i Slack.\n – Vi säger \"vi tar det sen\" –\""
+    },
+    {
+      "id": "W004",
+      "title": "Rytmisk paus",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 15,
+      "pass": false,
+      "notes": "Pattern not found: (^|\\n)(Nej\\.|Nej nej\\.|Exakt\\.|Precis\\.|Eller\\?)"
+    },
+    {
+      "id": "W006",
+      "title": "Signaturblock",
+      "type": "regex",
+      "scope": "last_screen",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\n/\""
+    }
+  ]
+}

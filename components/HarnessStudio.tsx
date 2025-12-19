@@ -53,7 +53,7 @@ export const HarnessStudio: React.FC = () => {
   const [topic, setTopic] = useState('');
   const [audience, setAudience] = useState('');
   const [userInput, setUserInput] = useState('');
-  const [signatureName, setSignatureName] = useState('Ann-Christin');
+  const [signatureName, setSignatureName] = useState('');
   const [signatureTagline, setSignatureTagline] = useState('');
   const [friction, setFriction] = useState(3);
   const [warmth, setWarmth] = useState(3);
@@ -100,7 +100,7 @@ export const HarnessStudio: React.FC = () => {
           max_chars: 1200,
           min_chars: profile === 'brev' ? 800 : 600,
           signature: {
-            name: signatureName || 'Ann-Christin',
+            name: signatureName || '',
             tagline: signatureTagline || ''
           }
         },
@@ -248,7 +248,15 @@ export const HarnessStudio: React.FC = () => {
                   }}
                 />
                 <div className="text-[9px] text-prompt-text-muted font-mono italic">
-                  {friction <= 2 ? 'Varsam spegel' : friction === 3 ? 'Balanserad provokation' : 'Tydlig konfrontation med värme'}
+                  {profile === 'warm_provocation' ? (
+                    friction === 1 ? 'Varsam spegel – trygg igenkänning' :
+                    friction === 2 ? 'Mjuk friktion – lätt kontrast' :
+                    friction === 3 ? 'Avslöjande spegel – tydlig friktion' :
+                    friction === 4 ? 'Konfrontation – ifrågasättande' :
+                    'Kaxig spegel – avslöjar hyckleri'
+                  ) : (
+                    friction <= 2 ? 'Varsam spegel' : friction === 3 ? 'Balanserad provokation' : 'Tydlig konfrontation med värme'
+                  )}
                 </div>
               </div>
               <div className="flex flex-col gap-3">
@@ -285,7 +293,7 @@ export const HarnessStudio: React.FC = () => {
                 label="Signatur (namn)"
                 value={signatureName}
                 onChange={(e) => setSignatureName(e.target.value)}
-                placeholder="Ann-Christin"
+                placeholder="Namn (lämna tomt om ingen signatur)"
               />
               <Input
                 label="Signatur (tagline)"

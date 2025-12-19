@@ -1,0 +1,96 @@
+# UPPGIFT
+Skriv ett LinkedIn-inlägg enligt profilen "brev".
+
+# STIL-DNA (följ detta noggrant)
+## Brev-profil
+
+### Kärna
+Emotionell närhet före åsikt. Stillhet före pepp. Vardag före visdom.
+
+### Signaturdrag
+1. **Direkt tilltal**: "Du som...", "Till dig som..."
+2. **Mikrosituationer**: Frukostbord, termometer, famn, panna mot hals, novembermorgon
+3. **Whitespace**: Ensamma meningar. Pauser. Luft.
+4. **Sårbar auktoritet**: "Jag har varit du", "Jag minns känslan"
+5. **Reframing**: Från skuld/stress → mänsklighet/tillåtelse
+6. **Mjuk slutsats**: Ingen hård CTA. Värme utan krav.
+
+### Ton
+Varm. Stillsam. Sant. Som ett brev från någon som förstår.
+
+### Undvik
+- Pepp och klyschor
+- "Du klarar det!" / "Tro på dig själv!"
+- Generiska livsråd
+- Överdriven positivitet
+
+---
+
+# EXEMPEL-FRAGMENT (för inspiration, EJ kopiering)
+## Brev-profil
+
+### Öppningar (typ)
+- "Du som jonglerar..."
+- "Till dig som sitter där nu..."
+- "Du som känner..."
+
+### Sårbar auktoritet (typ)
+- "Jag har varit du."
+- "Jag minns känslan i magen när..."
+- "Jag hade gett allt för att få..."
+
+### Mikrodetaljer (typ, inte exakt)
+- tid: "grå novembermorgon", "klockan fem"
+- plats: "frukostbordet", "vid sängen"
+- kropp: "panna mot halsen", "tung i kroppen"
+- föremål: "termometern", "datorn i knät"
+
+### Reframing (typ)
+- "Det var aldrig 'inget särskilt'. Det var livet."
+- "Du är inte dålig på... Du är bara mitt i..."
+
+### Mjuka avslut (typ)
+- "Du gör det bästa du kan. Och det är nog."
+- "Då behöver du vara människa först."
+
+---
+
+
+VIKTIG REGEL:
+Använd examples som inspiration för FORM och KÄNSLA.
+ÅTERANVÄND ALDRIG exakta fraser eller meningar från examples.
+Parafrasera alltid. Skapa nytt.
+Om du känner igen en mening från examples - skriv om den helt.
+
+
+# ANVÄNDARENS INPUT
+Ämne: Småbarnsförälder som kombinerar jobb och föräldraskap
+Målgrupp: Personer mitt i småbarnsåren som försöker kombinera jobb och föräldraskap
+Beskrivning: Skriv ett personligt brev i jag-form till en person som befinner sig mitt i småbarnsåren och försöker kombinera jobb och föräldraskap. Texten ska vara varm, eftertänksam och mänsklig – inte coachande eller peppig. Använd konkreta vardagsbilder (t.ex. vab, möten, deadlines, feber, morgnar, tankar som "jag ska bara"). Låt avsändaren visa igenkänning genom egen erfarenhet ("jag har varit där") och gärna ett perspektiv från framtiden eller efteråt. Undvik råd, imperativ och snabba lösningar. Avlasta skuld snarare än att ställa krav. Om systemkritik finns, rikta den mot strukturer och förväntningar – inte individen. Avsluta med en stillsam bekräftelse till mottagaren, inte en uppmaning. Språket ska vara lågmält, ärligt och kännas som ett brev – inte ett LinkedIn-inlägg optimerat för räckvidd.
+
+# CONSTRAINTS
+- Språk: sv
+- Längd: 600-1200 tecken
+- Inga asterisker (*) för formatering
+- Signatur: /Test-User
+Test tagline för att verifiera att signatur inte är hårdkodad
+  (Om signature saknas i spec: rendera ingen signatur alls, hellre tomt än default)
+
+# KONTROLLER
+- Utmaningsgrad: 1/5 (hur mycket texten utmanar läsaren)
+- Värme: 5/5 (hur varm/empatisk tonen är)
+- Berättelse: 4/5 (hur mycket personlig historia)
+
+
+
+# SIGNATUR (FRÅN SPEC)
+VIKTIGT: Signatur kommer ALLTID från constraints.signature i spec, aldrig hårdkodad.
+Om signature saknas i spec: rendera ingen signatur alls (hellre tomt än default).
+Använd exakt:
+/Test-User
+Test tagline för att verifiera att signatur inte är hårdkodad
+
+# OUTPUT
+Skriv ENDAST LinkedIn-inlägget. Ingen inledning, ingen förklaring.
+Börja direkt med texten och avsluta med signaturen.
+VIKTIGT: Avsluta ALLTID med en spegelfråga, aldrig med uppmaning eller råd.
