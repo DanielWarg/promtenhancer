@@ -117,8 +117,8 @@ function checkB003(text) {
   // Räkna tomma rader (radbrytningar mellan stycken)
   const emptyLines = (text.match(/\n\s*\n/g) || []).length;
   
-  // Krav: minst 3 och max 6 stycken (naturligt brevflöde)
-  const passParagraphs = paragraphCount >= 3 && paragraphCount <= 6;
+  // Krav: 4-5 stycken för Brev-profilen (naturligt brevflöde, inte poesi)
+  const passParagraphs = paragraphCount >= 4 && paragraphCount <= 5;
   
   // Krav: minst 3 tomma rader (luft mellan stycken) - detta säkerställer att texten har naturligt brevflöde
   const passBreaks = emptyLines >= 3;
@@ -145,7 +145,7 @@ function checkB003(text) {
   const pass = passParagraphs && passBreaks && passLonely && !tooManyShortLines && !hasBullets;
   
   const issues = [];
-  if (!passParagraphs) issues.push(`paragraphs: ${paragraphCount} (need 3-6)`);
+  if (!passParagraphs) issues.push(`paragraphs: ${paragraphCount} (need 4-5)`);
   if (!passBreaks) issues.push(`empty lines: ${emptyLines} (need ≥3)`);
   if (!passLonely) issues.push(`lonely sentences: ${lonelySentences} (max 2)`);
   if (tooManyShortLines) issues.push(`telegramstil: ${shortLines.length} korta rader`);
@@ -155,7 +155,7 @@ function checkB003(text) {
     pass,
     notes: issues.length > 0 
       ? `FAIL: ${issues.join(', ')}`
-      : `Paragraphs: ${paragraphCount} (3-6 ok), Empty lines: ${emptyLines}/3, Lonely sentences: ${lonelySentences} (max 2), Short lines: ${shortLines.length}`
+      : `Paragraphs: ${paragraphCount} (4-5 ok), Empty lines: ${emptyLines}/3, Lonely sentences: ${lonelySentences} (max 2), Short lines: ${shortLines.length}`
   };
 }
 

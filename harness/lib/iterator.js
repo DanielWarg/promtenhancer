@@ -147,8 +147,11 @@ function applyFormatPatch(output) {
   const signature = signatureMatch ? signatureMatch[0] : '';
   const textWithoutSignature = signatureMatch ? output.slice(0, signatureMatch.index).trim() : output.trim();
   
-  // Split into sentences (preserve original text for word diff)
+  // Preserve original text EXACTLY (including all whitespace) for word diff
   const originalText = textWithoutSignature;
+  
+  // Split into sentences - preserve exact words and punctuation
+  // Simple approach: split on sentence endings followed by whitespace
   const sentences = textWithoutSignature.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
   
   if (sentences.length === 0) {
@@ -160,12 +163,12 @@ function applyFormatPatch(output) {
     };
   }
   
-  // Strategy: Create natural paragraphs
-  // - Target 3-6 paragraphs
-  // - Each paragraph: 1-3 sentences (prefer 2-3 for natural flow)
+  // Strategy: Create natural paragraphs (Brev-profil: 4-5 stycken, inte poesi)
+  // - Target 4-5 paragraphs (brev, inte poesi)
+  // - Each paragraph: 2-3 sentences (prefer 2-3 for natural flow, tanken får gå klart)
   // - Max 2 lonely sentences (single-sentence paragraphs)
   
-  const targetParagraphs = Math.min(6, Math.max(3, Math.ceil(sentences.length / 2.5)));
+  const targetParagraphs = Math.min(5, Math.max(4, Math.ceil(sentences.length / 2.5)));
   const paragraphs = [];
   let lonelyCount = 0;
   let i = 0;
@@ -187,14 +190,15 @@ function applyFormatPatch(output) {
     }
     
     const paragraphSentences = sentences.slice(i, i + paragraphSize);
+    // Join sentences with single space (preserve exact words)
     paragraphs.push(paragraphSentences.join(' '));
     i += paragraphSize;
   }
   
-  // Ensure we have 3-6 paragraphs
-  if (paragraphs.length < 3) {
+  // Ensure we have 4-5 paragraphs (Brev-profil)
+  if (paragraphs.length < 4) {
     // Too few paragraphs: split larger ones
-    while (paragraphs.length < 3 && paragraphs.some(p => p.split(/[.!?]/).length > 2)) {
+    while (paragraphs.length < 4 && paragraphs.some(p => p.split(/[.!?]/).length > 2)) {
       const longIndex = paragraphs.findIndex(p => p.split(/[.!?]/).length > 2);
       const longPara = paragraphs[longIndex];
       const longSentences = longPara.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
@@ -210,9 +214,9 @@ function applyFormatPatch(output) {
     }
   }
   
-  if (paragraphs.length > 6) {
-    // Too many paragraphs: merge smaller ones
-    while (paragraphs.length > 6) {
+  if (paragraphs.length > 5) {
+    // Too many paragraphs: merge smaller ones (Brev-profil: max 5)
+    while (paragraphs.length > 5) {
       const shortIndex = paragraphs.findIndex(p => p.split(/[.!?]/).length === 1);
       if (shortIndex === -1) break;
       
@@ -233,12 +237,24 @@ function applyFormatPatch(output) {
   const patchedOutput = paragraphs.join('\n\n') + (signature ? '\n\n' + signature : '');
   
   // CRITICAL: Verify no words were changed (only formatting)
-  const diffResult = wordDiff(originalText, patchedOutput.replace(/\n\n/g, ' ').replace(/\n/g, ' ').trim());
-  if (!diffResult.identical) {
+  // Normalize both texts: remove all whitespace and compare character-by-character
+  const normalizeForComparison = (text) => text.replace(/\s+/g, '').toLowerCase();
+  const originalNormalized = normalizeForComparison(originalText);
+  const patchedNormalized = normalizeForComparison(patchedOutput.replace(/\n\n/g, ' ').replace(/\n/g, ' ').trim());
+  
+  if (originalNormalized !== patchedNormalized) {
+    // Find first difference for debugging
+    let firstDiff = 0;
+    for (let i = 0; i < Math.min(originalNormalized.length, patchedNormalized.length); i++) {
+      if (originalNormalized[i] !== patchedNormalized[i]) {
+        firstDiff = i;
+        break;
+      }
+    }
     return {
       success: false,
       error: 'FORMAT_PATCH_CHANGED_WORDS',
-      message: `Format patch changed words: ${diffResult.message}`,
+      message: `Format patch changed content: difference at position ${firstDiff}, original length ${originalNormalized.length}, patched length ${patchedNormalized.length}`,
       patchedOutput: null
     };
   }

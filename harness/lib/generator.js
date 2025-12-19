@@ -208,32 +208,45 @@ De ska kännas skrivna av samma person – men från olika mentala platser i liv
 
 **Avslut:** ${level.ending}
 
+## STILREFERENS (VIKTIGAST)
+Du skriver brev, inte poesi och inte LinkedIn-one-liners.
+
+Texten ska ha samma längd, densitet och rytm som ett sammanhängande, reflekterande brev:
+- ca 900–1100 tecken (MAX 1200, aldrig över)
+- 4–5 stycken (inte fler, inte färre)
+- Få men meningsfulla radbrytningar
+- Varje stycke bär 2–3 meningar och tanken får gå klart innan ny rad
+- Radbrytningar används för struktur, INTE för andning
+- Undvik upprepade ellipser (…) – använd punkt eller komma istället
+
 ## LÄNGDGUARD (KRITISKT)
 - MÅLSLÄNGD: 900–1100 tecken (tillåtet 800–1200)
 - Om texten är för kort (< 800 tecken):
-  * Lägg till 1–2 mikrodetaljer (tidpunkt, kropp, rum, ljud)
-  * Fördjupa en befintlig tanke (ingen ny insikt, bara utveckla det som redan finns)
-  * Lägg till 1 reflekterande mening (inte råd, bara igenkänning)
+  * Fördjupa en redan existerande tanke
+  * Lägg till konkret minnesbild (tid, kropp, rum)
+  * Ingen ny insikt
 - Om texten är för lång (> 1200 tecken):
-  * Ta bort förklarande meningar (meta, abstraktioner)
-  * Behåll känsla och observation
-  * Kapa resonemang, behåll bilder och kärninsikt
+  * Ta bort förklarande eller sammanfattande meningar
+  * Behåll observationer och känsla
 - VIKTIGT: Ändra INTE ordval, meningars innehåll eller tonalitet – bara längd
 
-## FORMATERINGSGUARD (Flow, inte dikt)
-- FÖRBJUDET: "Telegramradning" (t.ex. "Kaffe. Kallt. Möte."). Korta meningar är okej, men de ska fortfarande bilda naturliga stycken
-- KRAV: Minst 3 och max 6 stycken totalt
-- KRAV: Varje stycke 1–3 meningar (helst 2–3 för naturligt flow)
-- KRAV: Varje stycke ska separeras med en tom rad (radbrytning). Skriv med naturliga radbrytningar mellan styckena
-- KRAV: Max 2 ensamma rader ("lonely sentence") totalt, och endast om de känns som naturliga pauser (inte rytm/rim)
-- FÖRBJUDET: Listor eller bullets i Brev-profilen (Warm kan ha bullets, Brev får inte)
-- FÖRBJUDET: Rim/rytm-upprepning som känns "dikt"
-- MÅL: Lugnt, prosaiskt brevflöde med luft mellan stycken
+## FORMATERINGSGUARD (Brev, inte poesi)
+- KRAV: Exakt 4–5 stycken totalt (inte fler, inte färre)
+- KRAV: Varje stycke 2–3 meningar (tanken får gå klart innan ny rad)
+- KRAV: Varje stycke ska separeras med en tom rad (radbrytning)
+- KRAV: Max 2 ensamma rader totalt (endast om naturlig paus, inte rytm)
+- FÖRBJUDET: Telegramstil ("Kaffe. Kallt. Möte.")
+- FÖRBJUDET: Listor eller bullets (Warm kan ha bullets, Brev får inte)
+- FÖRBJUDET: Diktliknande radbrytningar (för många ensamma rader)
+- FÖRBJUDET: Upprepade ellipser (…) – använd punkt eller komma istället
+- MÅL: Lugnt, prosaiskt brevflöde där varje stycke bär flera meningar
 - VIKTIGT: Ändra INTE ordval eller meningars innehåll – bara formatering (radbrytningar)
-- Exempel på korrekt formatering:
-  Du som sitter där.
+- EXEMPEL på korrekt formatering (4–5 stycken, 2–3 meningar per stycke):
+  Du som sitter där med ett febrigt barn i famnen. Jag minns känslan när telefonen ringde. Hur hjärtat sjönk.
 
-  Jag minns känslan när telefonen ringde. Hur hjärtat sjönk.
+  Det är som om tiden stannar, men ändå tickar klockan obarmhärtigt vidare. Jag ser hur du försöker balansera.
+
+  Jag har varit där. När lungorna känns tunga av stress och hjärtat är fyllt av oro.
 
   Det är allt jag vet just nu.
 
@@ -248,7 +261,7 @@ De ska kännas skrivna av samma person – men från olika mentala platser i liv
   * "vi är alla bara människor" (för generisk, använd konkret igenkänning istället)
 - Avlasta skuld genom ton och igenkänning, INTE genom pepp eller uppmuntrande klyschor
 - Undvik rim/rytm-upprepning som skapar diktkänsla
-- Naturligt, prosaiskt brevflöde med luft mellan stycken
+- Naturligt, prosaiskt brevflöde där varje stycke bär flera meningar
 - Exempel på FEL: "Det är okej att vara människa först. Det är okej att känna så. Ingen behöver vara perfekt."
 - Exempel på RÄTT: "Jag har varit där. Jag minns känslan när telefonen ringde. Hur hjärtat sjönk." (konkret igenkänning utan pepp)
 
