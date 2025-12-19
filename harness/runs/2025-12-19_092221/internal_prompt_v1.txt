@@ -1,0 +1,85 @@
+# UPPGIFT
+Skriv ett LinkedIn-inlägg enligt profilen "brev".
+
+# STIL-DNA (följ detta noggrant)
+## Brev-profil
+
+### Kärna
+Emotionell närhet före åsikt. Stillhet före pepp. Vardag före visdom.
+
+### Signaturdrag
+1. **Direkt tilltal**: "Du som...", "Till dig som..."
+2. **Mikrosituationer**: Frukostbord, termometer, famn, panna mot hals, novembermorgon
+3. **Whitespace**: Ensamma meningar. Pauser. Luft.
+4. **Sårbar auktoritet**: "Jag har varit du", "Jag minns känslan"
+5. **Reframing**: Från skuld/stress → mänsklighet/tillåtelse
+6. **Mjuk slutsats**: Ingen hård CTA. Värme utan krav.
+
+### Ton
+Varm. Stillsam. Sant. Som ett brev från någon som förstår.
+
+### Undvik
+- Pepp och klyschor
+- "Du klarar det!" / "Tro på dig själv!"
+- Generiska livsråd
+- Överdriven positivitet
+
+---
+
+# EXEMPEL-FRAGMENT (för inspiration, EJ kopiering)
+## Brev-profil
+
+### Öppningar (typ)
+- "Du som jonglerar..."
+- "Till dig som sitter där nu..."
+- "Du som känner..."
+
+### Sårbar auktoritet (typ)
+- "Jag har varit du."
+- "Jag minns känslan i magen när..."
+- "Jag hade gett allt för att få..."
+
+### Mikrodetaljer (typ, inte exakt)
+- tid: "grå novembermorgon", "klockan fem"
+- plats: "frukostbordet", "vid sängen"
+- kropp: "panna mot halsen", "tung i kroppen"
+- föremål: "termometern", "datorn i knät"
+
+### Reframing (typ)
+- "Det var aldrig 'inget särskilt'. Det var livet."
+- "Du är inte dålig på... Du är bara mitt i..."
+
+### Mjuka avslut (typ)
+- "Du gör det bästa du kan. Och det är nog."
+- "Då behöver du vara människa först."
+
+---
+
+
+VIKTIG REGEL:
+Använd examples som inspiration för FORM och KÄNSLA.
+ÅTERANVÄND ALDRIG exakta fraser eller meningar från examples.
+Parafrasera alltid. Skapa nytt.
+Om du känner igen en mening från examples - skriv om den helt.
+
+
+# ANVÄNDARENS INPUT
+Ämne: Småbarnsförälder med sjukt barn och jobbstress
+Målgrupp: Föräldrar som jonglerar jobb och familj
+Beskrivning: Skriv ett LinkedIn-inlägg om hur det är att vara hemma med sjukt barn när jobbet trycker på. Det ska kännas som ett varmt brev, inte en predikan. Utgå från känslan av att sitta med ett febrigt barn i famnen och samtidigt ha datorn i tankarna. Budskapet ska vara att det är okej att vara människa först.
+
+# CONSTRAINTS
+- Språk: sv
+- Längd: 800-1200 tecken
+- Inga asterisker (*) för formatering
+- Signatur: /Ann-Christin
+  Ninja-psykolog och tidigare expert på att känna stress för fel saker
+
+# KONTROLLER
+- Friktion: 2/5 (hur mycket texten utmanar läsaren)
+- Värme: 5/5 (hur varm/empatisk tonen är)
+- Berättelse: 4/5 (hur mycket personlig historia)
+
+# OUTPUT
+Skriv ENDAST LinkedIn-inlägget. Ingen inledning, ingen förklaring.
+Börja direkt med texten och avsluta med signaturen.

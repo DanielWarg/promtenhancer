@@ -27,6 +27,44 @@
   ::-webkit-scrollbar-thumb:hover {
     background: #A1887F; 
   }
+  
+  /* Range slider styling */
+  input[type="range"].slider {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  
+  input[type="range"].slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #8D6E63;
+    cursor: pointer;
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 2px 4px rgba(141, 110, 99, 0.3);
+  }
+  
+  input[type="range"].slider::-webkit-slider-thumb:hover {
+    background: #5D4037;
+    box-shadow: 0 4px 8px rgba(141, 110, 99, 0.4);
+  }
+  
+  input[type="range"].slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #8D6E63;
+    cursor: pointer;
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 2px 4px rgba(141, 110, 99, 0.3);
+  }
+  
+  input[type="range"].slider::-moz-range-thumb:hover {
+    background: #5D4037;
+    box-shadow: 0 4px 8px rgba(141, 110, 99, 0.4);
+  }
 }
 
 

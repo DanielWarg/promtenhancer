@@ -71,6 +71,38 @@ function loadExamples(profile) {
 function buildInternalPrompt(spec, styleDna, examples) {
   const { profile, topic, audience, user_input, constraints, controls } = spec;
   
+  // Get friction value (1-5) for tonal adjustment
+  const friction = controls?.friction || 3;
+  
+  // Build tonal guidance based on friction (only for warm_provocation)
+  let tonalGuidance = '';
+  if (profile === 'warm_provocation') {
+    if (friction <= 2) {
+      tonalGuidance = `
+# TONALITET (Utmaningsgrad: ${friction}/5 - Varsam)
+- Spegla varsamt. Undvik starka negationer ("Du är inte X").
+- Använd mjuka kontraster och observationer.
+- Avslöjande ska kännas tryggt, inte konfrontativt.
+- Avslut med spegelfråga som är inbjudande, inte utmanande.`;
+    } else if (friction === 3) {
+      tonalGuidance = `
+# TONALITET (Utmaningsgrad: ${friction}/5 - Balanserad)
+- Neutral baseline. Avslöjande men trygg ton.
+- Balansera spegel med provokation.
+- Kontraster ska vara tydliga men inte aggressiva.
+- Avslut med spegelfråga som stannar kvar.`;
+    } else {
+      // friction 4-5
+      tonalGuidance = `
+# TONALITET (Utmaningsgrad: ${friction}/5 - Tydlig konfrontation)
+- Tillåt tydliga kontraster och avslöjanden av självbedrägeri.
+- Hooken får vara starkare och mer direkt.
+- Provokationen ska kännas ärlig, inte aggressiv.
+- Avslut med spegelfråga som är spetsig men fortfarande varm.
+- Behåll värme genom självinvolvering ("Jag känner igen mig").`;
+    }
+  }
+  
   const prompt = `# UPPGIFT
 Skriv ett LinkedIn-inlägg enligt profilen "${profile}".
 
@@ -95,13 +127,16 @@ Beskrivning: ${user_input}
   ${constraints.signature?.tagline || ''}
 
 # KONTROLLER
-- Friktion: ${controls?.friction || 3}/5 (hur mycket texten utmanar läsaren)
+- Utmaningsgrad: ${friction}/5 (hur mycket texten utmanar läsaren)
 - Värme: ${controls?.warmth || 3}/5 (hur varm/empatisk tonen är)
 - Berättelse: ${controls?.story || 3}/5 (hur mycket personlig historia)
+
+${tonalGuidance}
 
 # OUTPUT
 Skriv ENDAST LinkedIn-inlägget. Ingen inledning, ingen förklaring.
 Börja direkt med texten och avsluta med signaturen.
+VIKTIGT: Avsluta ALLTID med en spegelfråga, aldrig med uppmaning eller råd.
 `;
 
   return prompt;

@@ -1,0 +1,32 @@
+[GENERATION SKIPPED - LLM DISABLED]
+
+NO_NETWORK mode enabled (NO_NETWORK=1 or --no-network flag)
+
+---
+
+Du som sitter där med datorn i knät och oron i magen.
+Du som försöker vara på två ställen samtidigt.
+
+Jag har varit du.
+Jag minns känslan när telefonen ringde från förskolan.
+Hur hjärtat sjönk. Inte för att barnet var sjukt.
+Utan för att jag visste vad det betydde för jobbet.
+
+Det är ingen bra känsla.
+Att vara delad.
+
+Men vet du vad?
+Ditt barn kommer inte minnas vilka möten du missade.
+De kommer minnas att du var där.
+I soffan. Med filmen. Med febriga kinder mot din axel.
+
+Det är inte ett misslyckande.
+Det är livet.
+
+Du gör det bästa du kan.
+Och det är nog.
+
+/Ann-Christin
+Ninja-psykolog och tidigare expert på att känna stress för fel saker
+
+[DUMMY OUTPUT - Genererat utan API-nyckel för testning]
