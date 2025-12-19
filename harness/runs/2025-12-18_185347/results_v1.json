@@ -1,0 +1,116 @@
+{
+  "version": "v1",
+  "timestamp": "2025-12-18T17:54:02.355Z",
+  "profile": "warm_provocation",
+  "scores": {
+    "compliance_score": 100,
+    "quality_score": 100,
+    "total_score": 100,
+    "formula": "0.6 * compliance + 0.4 * quality"
+  },
+  "targets": {
+    "compliance_target": 95,
+    "quality_target": 85,
+    "compliance_met": true,
+    "quality_met": true
+  },
+  "per_check": [
+    {
+      "id": "G001",
+      "title": "No exact example line reuse",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 5,
+      "pass": true,
+      "notes": "No cloning detected"
+    },
+    {
+      "id": "W001a",
+      "title": "Hook inom första meningar",
+      "type": "heuristic",
+      "scope": "first_screen",
+      "weight": 15,
+      "pass": true,
+      "notes": "Hook has direct address and contrast"
+    },
+    {
+      "id": "W007b",
+      "title": "Inga fingerpekning-fraser",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 10,
+      "pass": true,
+      "notes": "Inga explicita fingerpekning-fraser hittade"
+    },
+    {
+      "id": "W001",
+      "title": "Avslöjande hook",
+      "type": "llm_judge",
+      "scope": "first_screen",
+      "weight": 40,
+      "pass": true,
+      "notes": "– Öppningen konfronterar läsarens självbild (\"du tror att du inte är konflikträdd\") och vänder den (\"det är du visst\") på ett sätt som avslöjar ett självbedrägeri och skapar friktion."
+    },
+    {
+      "id": "W005",
+      "title": "Metafor som bär insikt",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": true,
+      "notes": "– Metaforerna \"tyst krig\" och särskilt \"lägga konflikter i frysen\" är konkreta, visuella och bär en tydlig insikt om passiv konflikthantering som många känner igen och minns."
+    },
+    {
+      "id": "W007",
+      "title": "Inte moralpredikan (ton)",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": true,
+      "notes": "Score: 92/100 (threshold: 65). Stark spegel med humor och ironi (\"Nej nej. Inte du.\") som avslöjar utan att skälla; Tydlig självinkludering på slutet (\"den som fortfarande övar...\") som avväpnar pekpinnar; Konkreta vardagsexempel och direkt tilltal skapar hög igenkänning snarare än dömande ton",
+      "score": 92,
+      "pass_threshold": 65,
+      "reasons": [
+        "Stark spegel med humor och ironi (\"Nej nej. Inte du.\") som avslöjar utan att skälla",
+        "Tydlig självinkludering på slutet (\"den som fortfarande övar...\") som avväpnar pekpinnar",
+        "Konkreta vardagsexempel och direkt tilltal skapar hög igenkänning snarare än dömande ton"
+      ]
+    },
+    {
+      "id": "W002",
+      "title": "Vardagsmiljö",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"Slack\""
+    },
+    {
+      "id": "W003",
+      "title": "Listsekvens",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"– skriver ett syrligt \"🙂\" i Slack istället för att ringa upp  \n– pratar av dig i korridoren men blir neutral i mötet  \n–\""
+    },
+    {
+      "id": "W004",
+      "title": "Rytmisk paus",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\nNej nej.\""
+    },
+    {
+      "id": "W006",
+      "title": "Signaturblock",
+      "type": "regex",
+      "scope": "last_screen",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\n/\""
+    }
+  ]
+}

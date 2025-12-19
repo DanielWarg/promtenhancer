@@ -1,0 +1,116 @@
+{
+  "version": "v1",
+  "timestamp": "2025-12-18T17:32:13.007Z",
+  "profile": "warm_provocation",
+  "scores": {
+    "compliance_score": 85,
+    "quality_score": 70,
+    "total_score": 79,
+    "formula": "0.6 * compliance + 0.4 * quality"
+  },
+  "targets": {
+    "compliance_target": 95,
+    "quality_target": 85,
+    "compliance_met": false,
+    "quality_met": false
+  },
+  "per_check": [
+    {
+      "id": "G001",
+      "title": "No exact example line reuse",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 5,
+      "pass": true,
+      "notes": "No cloning detected"
+    },
+    {
+      "id": "W001a",
+      "title": "Hook inom första meningar",
+      "type": "heuristic",
+      "scope": "first_screen",
+      "weight": 15,
+      "pass": false,
+      "notes": "First 3 sentences lack direct address (du/ni)"
+    },
+    {
+      "id": "W007b",
+      "title": "Inga fingerpekning-fraser",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 10,
+      "pass": true,
+      "notes": "Inga explicita fingerpekning-fraser hittade"
+    },
+    {
+      "id": "W001",
+      "title": "Avslöjande hook",
+      "type": "llm_judge",
+      "scope": "first_screen",
+      "weight": 40,
+      "pass": true,
+      "notes": ". Öppningen avslöjar en självbedräglig uppfattning om att inte vara konflikträdd, vilket skapar en känsla av att läsaren blir konfronterad med sin verklighet. Denna kontrast mellan påståendet och den faktiska beteendet skapar friktion och får läsaren att känna sig sedd."
+    },
+    {
+      "id": "W005",
+      "title": "Metafor som bär insikt",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": true,
+      "notes": ". Texten innehåller flera konkreta och visuella metaforer, såsom \"en läckande kran\" och \"bygga en mur av frustration\", som bär insikter om att undvika konflikter och dess konsekvenser. Dessa metaforer skapar igenkänning och stannar kvar hos läsaren."
+    },
+    {
+      "id": "W007",
+      "title": "Inte moralpredikan (ton)",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": false,
+      "notes": "Score: 68/100 (threshold: 70). Blandning av igenkänning och föreläsande ton; Visar på förståelse men har inslag av pekande; Inkluderar sig själv men uppmanar till förändring",
+      "score": 68,
+      "pass_threshold": 70,
+      "reasons": [
+        "Blandning av igenkänning och föreläsande ton",
+        "Visar på förståelse men har inslag av pekande",
+        "Inkluderar sig själv men uppmanar till förändring"
+      ]
+    },
+    {
+      "id": "W002",
+      "title": "Vardagsmiljö",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"korridor\""
+    },
+    {
+      "id": "W003",
+      "title": "Listsekvens",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"– Vi viskar i korridoren men tystnar i mötet.  \n– Vi skickar passivt aggressiva meddelanden i Slack.  \n–\""
+    },
+    {
+      "id": "W004",
+      "title": "Rytmisk paus",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\nNej.\""
+    },
+    {
+      "id": "W006",
+      "title": "Signaturblock",
+      "type": "regex",
+      "scope": "last_screen",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\n/\""
+    }
+  ]
+}

@@ -1,0 +1,114 @@
+{
+  "version": "v1",
+  "timestamp": "2025-12-18T17:23:26.122Z",
+  "profile": "warm_provocation",
+  "scores": {
+    "compliance_score": 100,
+    "quality_score": 0,
+    "total_score": 60,
+    "formula": "0.6 * compliance + 0.4 * quality"
+  },
+  "targets": {
+    "compliance_target": 95,
+    "quality_target": 85,
+    "compliance_met": true,
+    "quality_met": false
+  },
+  "per_check": [
+    {
+      "id": "G001",
+      "title": "No exact example line reuse",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 5,
+      "pass": true,
+      "notes": "No cloning detected"
+    },
+    {
+      "id": "W001a",
+      "title": "Hook inom första meningar",
+      "type": "heuristic",
+      "scope": "first_screen",
+      "weight": 15,
+      "pass": true,
+      "notes": "Hook has direct address and contrast"
+    },
+    {
+      "id": "W007b",
+      "title": "Inga fingerpekning-fraser",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 10,
+      "pass": true,
+      "notes": "Inga explicita fingerpekning-fraser hittade"
+    },
+    {
+      "id": "W001",
+      "title": "Avslöjande hook",
+      "type": "llm_judge",
+      "scope": "first_screen",
+      "weight": 40,
+      "pass": false,
+      "notes": "[STUB] LLM judge disabled (no API key). Set OPENAI_API_KEY to enable."
+    },
+    {
+      "id": "W005",
+      "title": "Metafor som bär insikt",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": false,
+      "notes": "[STUB] LLM judge disabled (no API key). Set OPENAI_API_KEY to enable."
+    },
+    {
+      "id": "W007",
+      "title": "Inte moralpredikan (ton)",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": false,
+      "notes": "[STUB] LLM judge disabled (no API key). Set OPENAI_API_KEY to enable.",
+      "score": 0,
+      "pass_threshold": 70,
+      "reasons": [
+        "[STUB] No API key"
+      ]
+    },
+    {
+      "id": "W002",
+      "title": "Vardagsmiljö",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"DM\""
+    },
+    {
+      "id": "W003",
+      "title": "Listsekvens",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"– Du skriver ett \"snällt\" DM istället för att ringa.\n– Du nickar i mötet men ventilerar i korridoren.\n–\""
+    },
+    {
+      "id": "W004",
+      "title": "Rytmisk paus",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\nNej nej.\""
+    },
+    {
+      "id": "W006",
+      "title": "Signaturblock",
+      "type": "regex",
+      "scope": "last_screen",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\n/\""
+    }
+  ]
+}

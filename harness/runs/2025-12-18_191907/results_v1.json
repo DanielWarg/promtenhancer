@@ -1,0 +1,116 @@
+{
+  "version": "v1",
+  "timestamp": "2025-12-18T18:19:27.014Z",
+  "profile": "warm_provocation",
+  "scores": {
+    "compliance_score": 65,
+    "quality_score": 100,
+    "total_score": 79,
+    "formula": "0.6 * compliance + 0.4 * quality"
+  },
+  "targets": {
+    "compliance_target": 95,
+    "quality_target": 85,
+    "compliance_met": false,
+    "quality_met": true
+  },
+  "per_check": [
+    {
+      "id": "G001",
+      "title": "No exact example line reuse",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 5,
+      "pass": true,
+      "notes": "No cloning detected"
+    },
+    {
+      "id": "W001a",
+      "title": "Hook inom första meningar",
+      "type": "heuristic",
+      "scope": "first_screen",
+      "weight": 15,
+      "pass": true,
+      "notes": "Hook has direct address and contrast"
+    },
+    {
+      "id": "W007b",
+      "title": "Inga fingerpekning-fraser",
+      "type": "heuristic",
+      "scope": "full_text",
+      "weight": 10,
+      "pass": true,
+      "notes": "Inga explicita fingerpekning-fraser hittade"
+    },
+    {
+      "id": "W001",
+      "title": "Avslöjande hook",
+      "type": "llm_judge",
+      "scope": "first_screen",
+      "weight": 40,
+      "pass": true,
+      "notes": "– Öppningen konfronterar läsaren med ett beteende de ogärna erkänner, använder direkt tilltal och en tydlig kontrast mellan självbild (\"vill ha raka besked\") och handling (\"gör allt för att slippa säga dem\")."
+    },
+    {
+      "id": "W005",
+      "title": "Metafor som bär insikt",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": true,
+      "notes": "– Metaforen om att friktionen “läcker ut i sidoblickar, internskämt och små suckar i Teams” är konkret, visuellt och bär insikten om hur undvikna konflikter tar sig passivt-aggressiva uttryck som många känner igen. Den stannar kvar eftersom den tydligt visar priset för utebliven ärlighet i vardagliga, igenkännbara bilder."
+    },
+    {
+      "id": "W007",
+      "title": "Inte moralpredikan (ton)",
+      "type": "llm_judge",
+      "scope": "full_text",
+      "weight": 30,
+      "pass": true,
+      "notes": "Score: 90/100 (threshold: 85). Tydlig spegel-ironi: texten driver varmt med läsarens undvikandebeteenden så att man känner igen sig utan att bli utskälld; Stark självinkludering: avsändaren visar sig med namn, titel och egen svaghet (\"fortfarande övar\"), vilket minskar predikotonen; Konkreta vardagsscener och humor (\"Inte är det du, såklart\") skapar igenkänning snarare än skuld och pekpinnar",
+      "score": 90,
+      "pass_threshold": 85,
+      "reasons": [
+        "Tydlig spegel-ironi: texten driver varmt med läsarens undvikandebeteenden så att man känner igen sig utan att bli utskälld",
+        "Stark självinkludering: avsändaren visar sig med namn, titel och egen svaghet (\"fortfarande övar\"), vilket minskar predikotonen",
+        "Konkreta vardagsscener och humor (\"Inte är det du, såklart\") skapar igenkänning snarare än skuld och pekpinnar"
+      ]
+    },
+    {
+      "id": "W002",
+      "title": "Vardagsmiljö",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": true,
+      "notes": "Found: \"möte\""
+    },
+    {
+      "id": "W003",
+      "title": "Listsekvens",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 20,
+      "pass": false,
+      "notes": "Pattern not found: –.*\\n.*–.*\\n.*–"
+    },
+    {
+      "id": "W004",
+      "title": "Rytmisk paus",
+      "type": "regex",
+      "scope": "full_text",
+      "weight": 15,
+      "pass": false,
+      "notes": "Pattern not found: (^|\\n)(Nej\\.|Nej nej\\.|Exakt\\.|Precis\\.|Eller\\?)"
+    },
+    {
+      "id": "W006",
+      "title": "Signaturblock",
+      "type": "regex",
+      "scope": "last_screen",
+      "weight": 15,
+      "pass": true,
+      "notes": "Found: \"\n/\""
+    }
+  ]
+}
