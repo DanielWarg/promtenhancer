@@ -231,10 +231,17 @@ De ska kännas skrivna av samma person – men från olika mentala platser i liv
 
 ## FLOW-GUARD (Brev, inte poesi eller LinkedIn)
 - Skriv som ett brev, inte LinkedIn, inte poesi
-- Undvik coach-fraser och uppmuntrande klyschor: "du gör det bästa du kan", "det är okej", "vi klarar det", "du klarar det"
-- Avlasta skuld genom ton och igenkänning, INTE genom pepp
+- FÖRBJUDET: Coach-fraser och uppmuntrande klyschor som avlastar skuld genom pepp:
+  * "du gör det bästa du kan"
+  * "det är okej" / "det är okej att..."
+  * "vi klarar det" / "du klarar det"
+  * "tro på dig själv"
+  * "det är okej att vara människa först" (för direkt, använd istället ton och igenkänning)
+- Avlasta skuld genom ton och igenkänning, INTE genom pepp eller uppmuntrande klyschor
 - Undvik rim/rytm-upprepning som skapar diktkänsla
 - Naturligt, prosaiskt brevflöde med luft mellan stycken
+- Exempel på FEL: "Det är okej att vara människa först. Det är okej att känna så."
+- Exempel på RÄTT: "Jag har varit där. Jag minns känslan." (igenkänning utan pepp)
 
 ## ÖPPNING (Variera aktivt)
 Välj öppning från kategori: ${openingCategory.category}
