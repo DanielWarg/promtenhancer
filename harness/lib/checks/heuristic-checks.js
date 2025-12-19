@@ -105,6 +105,7 @@ function checkB002(text) {
 /**
  * B003 - Whitespace: Naturligt brevflöde med luft, inte dikt/telegram
  * Kräver: minst 3-6 stycken, max 2 ensamma rader, minst 3 tomma rader (radbrytningar mellan stycken)
+ * Flaggar: telegramstil, bullets i Brev-profilen
  */
 function checkB003(text) {
   const lonelySentences = countLonelySentences(text);
@@ -131,17 +132,30 @@ function checkB003(text) {
     const trimmed = l.trim();
     // Undvik signaturrader
     if (trimmed.match(/^\/[A-Z]/)) return false;
-    // Kort rad med max 1 mening
+    // Kort rad med max 1 mening och få ord (telegramstil)
     const sentences = trimmed.split(/[.!?]/).filter(s => s.trim().length > 0);
-    return sentences.length <= 1 && trimmed.length < 50;
+    const words = trimmed.split(/\s+/).length;
+    return sentences.length <= 1 && trimmed.length < 50 && words <= 5;
   });
   const tooManyShortLines = shortLines.length > 5; // För många korta rader = telegramstil
   
-  const pass = passParagraphs && passBreaks && passLonely && !tooManyShortLines;
+  // Flagga bullets i Brev-profilen (Warm kan ha bullets, Brev får inte)
+  const hasBullets = /^[\-\–\•]\s/.test(text) || /^[\-\–\•]\s/m.test(text);
+  
+  const pass = passParagraphs && passBreaks && passLonely && !tooManyShortLines && !hasBullets;
+  
+  const issues = [];
+  if (!passParagraphs) issues.push(`paragraphs: ${paragraphCount} (need 3-6)`);
+  if (!passBreaks) issues.push(`empty lines: ${emptyLines} (need ≥3)`);
+  if (!passLonely) issues.push(`lonely sentences: ${lonelySentences} (max 2)`);
+  if (tooManyShortLines) issues.push(`telegramstil: ${shortLines.length} korta rader`);
+  if (hasBullets) issues.push(`bullets detected (not allowed in Brev)`);
   
   return {
     pass,
-    notes: `Paragraphs: ${paragraphCount} (3-6 ok), Empty lines: ${emptyLines}/3, Lonely sentences: ${lonelySentences} (max 2), Short lines: ${shortLines.length}${tooManyShortLines ? ' (telegramstil!)' : ''}`
+    notes: issues.length > 0 
+      ? `FAIL: ${issues.join(', ')}`
+      : `Paragraphs: ${paragraphCount} (3-6 ok), Empty lines: ${emptyLines}/3, Lonely sentences: ${lonelySentences} (max 2), Short lines: ${shortLines.length}`
   };
 }
 

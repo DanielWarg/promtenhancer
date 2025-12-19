@@ -26,12 +26,25 @@
 **Obligatoriskt:**
 * Direkt tilltal tidigt ("Du som…" / "Till dig som…").
 * 2–3 mikrodetaljer (tid/plats/kropp/föremål).
-* Whitespace och ensamma meningar.
+* Naturligt brevflöde: 3–6 stycken med luft mellan.
 * Sårbar auktoritet ("Jag har varit där…", minns-känsla).
 * Mjuk slutsats (ingen hård CTA).
+* Längd: 900–1100 tecken (tillåtet 800–1200).
 
 **Förbjudet:**
-* Pepp, affisch-ton, "du klarar det".
+* Pepp, affisch-ton, "du klarar det", "du gör det bästa du kan", "det är okej", "vi klarar det".
+* Telegramstil ("Kaffe. Kallt. Möte.").
+* Listor eller bullets (Warm kan ha bullets, Brev får inte).
+* För många ensamma rader som skapar diktkänsla (max 2).
+* Rim/rytm-upprepning som känns "dikt".
+* Coach-fraser och uppmuntrande klyschor.
+
+**Brev Flow & Length-standard:**
+* **Längd-guard:** Sikta på 900–1100 tecken. Om < 800: lägg till 1–2 mikrodetaljer + 1 reflekterande mening (inte råd). Om > 1200: kapa förklarande meningar, behåll bilder och kärninsikt.
+* **Formatering:** 3–6 stycken, varje stycke 1–3 meningar. Minst 3 tomma rader (luft mellan stycken). Max 2 ensamma rader. Förbjud telegramstil och för korta fraser på rad.
+* **Flow:** Skriv som ett brev, inte LinkedIn, inte poesi. Undvik rim/rytm-upprepning. Avlasta skuld genom ton och igenkänning, inte genom pepp.
+* **Nivådifferentiering:** Behåll nivåernas "inre position" men variera öppningar (öppningsbank per nivå: tid/kropp/ljud/miljö).
+* **Signatur:** Alltid från `constraints.signature` i spec, aldrig hårdkodad. Formatering: ny rad + `/SIGNATURE` (inte `<SIGNATURE>`, inte utan snedstreck). Om saknas: lämna tomt.
 
 ---
 
@@ -99,7 +112,89 @@
 
 ---
 
-## C. Förbud mot återanvändning (Unika nivåer)
+## C. Brev Flow & Length-standard
+
+### C1. Längd-guard
+
+**Mål:** 900–1100 tecken (tillåtet 800–1200)
+
+**Om text < 800:**
+* Lägg till 1–2 mikrodetaljer (tidpunkt, kropp, rum, ljud)
+* Fördjupa en befintlig tanke (inte ny insikt)
+* Lägg till 1 reflekterande mening (inte råd)
+
+**Om text > 1200:**
+* Ta bort förklarande meningar (meta)
+* Behåll känsla och observation
+* Kapa resonemang, behåll bilder och kärninsikt
+
+### C2. Formaterings-guard: "brev, inte dikt"
+
+**Krav:**
+* 3–6 stycken totalt
+* Varje stycke: 1–3 meningar
+* Minst 3 tomma rader (luft mellan stycken)
+* Max 2 ensamma rader totalt
+
+**Förbjudet:**
+* Telegramstil ("Kaffe. Kallt. Möte.")
+* Listor eller bullets (Warm kan ha bullets, Brev får inte)
+* För många korta rader som skapar diktkänsla
+* Rim/rytm-upprepning som känns "dikt"
+
+**Målet:** Lugnt, prosaiskt brevflöde med luft mellan stycken
+
+### C3. Flow-guard: Brev, inte LinkedIn eller poesi
+
+**Undvik:**
+* Coach-fraser: "du gör det bästa du kan", "det är okej", "vi klarar det", "du klarar det", "tro på dig själv"
+* Uppmuntrande klyschor som avlastar skuld genom pepp
+* Rim/rytm-upprepning som skapar diktkänsla
+
+**Använd istället:**
+* Avlasta skuld genom ton och igenkänning
+* Naturligt, prosaiskt brevflöde
+* Skriv som ett brev, inte LinkedIn, inte poesi
+
+### C4. Nivådifferentiering (behåll exakt)
+
+**Ändra INTE:**
+* Inre position per nivå
+* Tidsrörelse (nu / distans / efterhand / system / försoning)
+* Avslutens funktion per nivå
+
+**Ändra ENDAST:**
+* Längd
+* Styckeindelning
+* Flow mellan meningar
+* Variera öppningar (öppningsbank per nivå: tid/kropp/ljud/miljö)
+
+### C5. Signatur-policy
+
+* Signatur kommer alltid från `constraints.signature` i spec, aldrig hårdkodad
+* Aldrig default "Ann-Christin"
+* Om signature saknas: lämna tomt (ingen fallback)
+* Formatering: ny rad + `/SIGNATURE` (inte `<SIGNATURE>`, inte utan snedstreck)
+
+### C6. Checks (B003)
+
+B003 ska fånga "flow inte dikt":
+* a) 3–6 stycken
+* b) minst 3 tomma rader
+* c) max 2 ensamma rader
+* d) flagga telegramstil (många rader med 1–3 ord)
+* e) flagga bullets i Brev
+
+### C7. Format-patch
+
+Om modellen ändå levererar för kompakta rader eller "dikt":
+* Enbart justera radbrytningar och styckeindelning (inte byta ord)
+* Resultat: 3–6 stycken och läsbart
+* Verifiera att inga ord ändras (endast formatering)
+
+---
+
+## D. Förbud mot återanvändning (Unika nivåer)
 
 * **Förbjudet** att återanvända identiska meningar, hooks, metaforer eller listor mellan nivåer 1–5.
 * Anta att alla fem nivåer granskas sida vid sida.
@@ -107,16 +202,17 @@
 
 ---
 
-## D. Signatur-policy
+## E. Signatur-policy (allmän)
 
 * Signatur får **ALDRIG** hårdkodas.
 * Signatur kommer alltid från `post_spec.constraints.signature` (name + tagline).
 * Om signature saknas i spec: rendera ingen signatur alls (hellre tomt än default).
 * Detta gäller även dummy/offline-output.
+* För Brev-profilen: Formatering är ny rad + `/SIGNATURE` (inte `<SIGNATURE>`, inte utan snedstreck).
 
 ---
 
-## E. Acceptabel provokation vs för mycket
+## F. Acceptabel provokation vs för mycket
 
 ### Acceptabel (PASS-korridor):
 

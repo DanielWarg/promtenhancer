@@ -221,6 +221,7 @@ De ska kännas skrivna av samma person – men från olika mentala platser i liv
 - Tillåt EN ensam rad ("lonely sentence") max 2 gånger per text, och endast om den känns som en naturlig paus (inte rytm/rim)
 - Inga listor/bullets i Brev-profilen. Brev ska kännas som brev, inte LinkedIn-format
 - Skriv i naturliga stycken (3–6 stycken), inga punktlistor, undvik fragment som känns poetiska/telegram
+- Förbjud rim/rytm-upprepning som känns "dikt"
 - Exempel på korrekt formatering:
   Du som sitter där.
 
@@ -228,11 +229,25 @@ De ska kännas skrivna av samma person – men från olika mentala platser i liv
 
   Det är okej att känna så.
 
+## FLOW-GUARD (Brev, inte poesi eller LinkedIn)
+- Skriv som ett brev, inte LinkedIn, inte poesi
+- Undvik coach-fraser och uppmuntrande klyschor: "du gör det bästa du kan", "det är okej", "vi klarar det", "du klarar det"
+- Avlasta skuld genom ton och igenkänning, INTE genom pepp
+- Undvik rim/rytm-upprepning som skapar diktkänsla
+- Naturligt, prosaiskt brevflöde med luft mellan stycken
+
 ## ÖPPNING (Variera aktivt)
 Välj öppning från kategori: ${openingCategory.category}
 Exempel: ${openingCategory.examples.join(', ')}
 - Undvik att samma kategori återkommer i flera nivåer i samma körning
 - Variera öppningar: tidpunkt, kropp, ljud, miljö
+
+## FLOW-GUARD (Brev, inte poesi eller LinkedIn)
+- Skriv som ett brev, inte LinkedIn, inte poesi
+- Undvik coach-fraser och uppmuntrande klyschor: "du gör det bästa du kan", "det är okej", "vi klarar det", "du klarar det", "tro på dig själv"
+- Avlasta skuld genom ton och igenkänning, INTE genom pepp
+- Undvik rim/rytm-upprepning som skapar diktkänsla
+- Naturligt, prosaiskt brevflöde med luft mellan stycken
 
 ## Gemensamma regler (alla nivåer)
 - Jag-form
@@ -240,7 +255,9 @@ Exempel: ${openingCategory.examples.join(', ')}
 - Ingen imperativ
 - Ingen coach-retorik
 - Ingen CTA
-- Signatur MÅSTE komma från spec (aldrig hårdkodad)
+- Signatur MÅSTE komma från spec (aldrig hårdkodad, aldrig default "Ann-Christin")
+- Signatur-formatering: ny rad + "/SIGNATURE" (inte <SIGNATURE>, inte utan snedstreck)
+- Om signature saknas i spec: lämna tomt (ingen fallback)
 - Varje nivå ska kunna läsas bredvid de andra och kännas tydligt annorlunda
 
 ## KRITISKT: Differentiering mellan nivåer
@@ -498,8 +515,9 @@ Beskrivning: ${user_input}
 ${tonalGuidance}
 
 # SIGNATUR (FRÅN SPEC)
-VIKTIGT: Signatur kommer ALLTID från constraints.signature i spec, aldrig hårdkodad.
+VIKTIGT: Signatur kommer ALLTID från constraints.signature i spec, aldrig hårdkodad, aldrig default "Ann-Christin".
 Om signature saknas i spec: rendera ingen signatur alls (hellre tomt än default).
+Formatering: ny rad + "/SIGNATURE" (inte <SIGNATURE>, inte utan snedstreck).
 Använd exakt:
 ${constraints.signature?.name ? `/${constraints.signature.name}` : ''}${constraints.signature?.tagline ? `\n${constraints.signature.tagline}` : ''}
 
@@ -520,6 +538,10 @@ function generateDummyOutput(spec) {
   const friction = controls?.friction || 3;
   
   if (profile === 'brev') {
+    const signature = constraints.signature?.name 
+      ? `/${constraints.signature.name}${constraints.signature?.tagline ? `\n${constraints.signature.tagline}` : ''}`
+      : '';
+    
     return `Du som sitter där med datorn i knät och oron i magen.
 Du som försöker vara på två ställen samtidigt.
 
@@ -539,11 +561,7 @@ I soffan. Med filmen. Med febriga kinder mot din axel.
 Det är inte ett misslyckande.
 Det är livet.
 
-Du gör det bästa du kan.
-Och det är nog.
-
-/${constraints.signature?.name || 'Författaren'}
-${constraints.signature?.tagline || ''}
+${signature ? `\n${signature}` : ''}
 
 [DUMMY OUTPUT - Genererat utan API-nyckel för testning]`;
   }
