@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from './Button';
 import { Card } from './Card';
 import { Badge } from './Badge';
@@ -7,6 +7,7 @@ import { Loader } from './Loader';
 import { Textarea } from './Textarea';
 import { Select } from './Select';
 import { Input } from './Input';
+type LoadingPhase = 'draft' | 'critique' | 'rewrite' | null;
 
 interface HarnessConfig {
   NO_NETWORK: boolean;
@@ -45,8 +46,10 @@ interface RunResult {
 export const HarnessStudio: React.FC = () => {
   const [config, setConfig] = useState<HarnessConfig | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingPhase, setLoadingPhase] = useState<LoadingPhase>(null);
   const [error, setError] = useState<string | null>(null);
   const [runResult, setRunResult] = useState<RunResult | null>(null);
+  const timeoutIdsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   
   // Form state
   const [profile, setProfile] = useState<'brev' | 'warm_provocation'>('brev');
@@ -77,9 +80,24 @@ export const HarnessStudio: React.FC = () => {
     e.preventDefault();
     if (!userInput.trim()) return;
     
+    // Clear any existing timeouts
+    timeoutIdsRef.current.forEach(id => clearTimeout(id));
+    timeoutIdsRef.current = [];
+    
     setLoading(true);
+    setLoadingPhase('draft');
     setError(null);
     setRunResult(null);
+    
+    // Set up timeouts for loading phases (only for Brev profile)
+    if (profile === 'brev') {
+      timeoutIdsRef.current.push(
+        setTimeout(() => setLoadingPhase('critique'), 1500)
+      );
+      timeoutIdsRef.current.push(
+        setTimeout(() => setLoadingPhase('rewrite'), 4000)
+      );
+    }
     
     try {
       const postSpec = {
@@ -135,7 +153,11 @@ export const HarnessStudio: React.FC = () => {
     } catch (err: any) {
       setError(err.message || 'Ett fel uppstod');
     } finally {
+      // Clear all timeouts
+      timeoutIdsRef.current.forEach(id => clearTimeout(id));
+      timeoutIdsRef.current = [];
       setLoading(false);
+      setLoadingPhase(null);
     }
   };
   
@@ -308,7 +330,14 @@ export const HarnessStudio: React.FC = () => {
               isLoading={loading}
               className="w-full mt-4"
             >
-              {loading ? 'Bearbetar...' : 'Generera & Utvärdera'}
+              {loading ? (
+                loadingPhase ? (
+                  loadingPhase === 'draft' ? 'Utkast...' :
+                  loadingPhase === 'critique' ? 'Granskar...' :
+                  loadingPhase === 'rewrite' ? 'Finslipar...' :
+                  'Bearbetar...'
+                ) : 'Bearbetar...'
+              ) : 'Generera & Utvärdera'}
             </Button>
           </form>
         </Card>

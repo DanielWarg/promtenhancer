@@ -88,10 +88,65 @@ function loadExamples(profile) {
 }
 
 /**
+ * Load feedback history from runDir
+ * Tolerates missing file, invalid format, empty array
+ */
+function loadFeedbackHistory(runDir) {
+  if (!runDir) {
+    return [];
+  }
+  
+  const feedbackPath = path.join(runDir, 'feedback_history.json');
+  
+  if (!fs.existsSync(feedbackPath)) {
+    return [];
+  }
+  
+  try {
+    const content = fs.readFileSync(feedbackPath, 'utf-8');
+    const data = JSON.parse(content);
+    
+    if (Array.isArray(data.history)) {
+      return data.history.filter(item => typeof item === 'string');
+    }
+    
+    return [];
+  } catch (error) {
+    console.log(`⚠️  Kunde inte läsa feedback_history.json: ${error.message}`);
+    return [];
+  }
+}
+
+/**
  * Build the internal prompt based on spec, style DNA, and examples
  */
-function buildInternalPrompt(spec, styleDna, examples) {
+async function buildInternalPrompt(spec, styleDna, examples, runDir = null) {
   const { profile, topic, audience, user_input, constraints, controls } = spec;
+  
+  // Brev-profil: använd agentic workflow
+  if (profile === 'brev') {
+    try {
+      // Use dynamic import (relative to harness/lib/)
+      const promptEngineModule = await import('../../lib/ai/prompt-engine.js');
+      const { constructLetterPrompt } = promptEngineModule;
+      
+      // Load feedback history
+      const feedbackHistory = loadFeedbackHistory(runDir);
+      
+      return constructLetterPrompt({
+        feedbackHistory: feedbackHistory.slice(-3), // Senaste 3
+        intensityLevel: controls?.friction || 3,
+        signature: constraints.signature || null,
+        topic: topic || '',
+        audience: audience || '',
+        userInput: user_input || ''
+      });
+    } catch (error) {
+      console.error(`❌ Fel vid import av constructLetterPrompt: ${error.message}`);
+      console.log('⚠️  Faller tillbaka på standard prompt för brev');
+      // Fall through to standard prompt
+    }
+  }
   
   // Get friction value (1-5) for tonal adjustment
   const friction = controls?.friction || 3;
@@ -730,7 +785,7 @@ ${body}`;
 /**
  * Call OpenAI API to generate output
  */
-async function callOpenAI(prompt, spec) {
+async function callOpenAI(prompt, spec, model = null) {
   // Check if LLM is disabled
   if (!config.LLM_ENABLED) {
     console.log(`⚠️  LLM disabled: ${config.LLM_SKIP_REASON}`);
@@ -752,6 +807,9 @@ async function callOpenAI(prompt, spec) {
     };
   }
   
+  // Model selection: Brev uses Pro model, others use cheaper model
+  const selectedModel = model || (spec.profile === 'brev' ? 'gpt-4o' : 'gpt-4o-mini');
+  
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -760,7 +818,7 @@ async function callOpenAI(prompt, spec) {
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: selectedModel,
         messages: [
           { role: 'system', content: 'Du är en expert på att skriva engagerande LinkedIn-inlägg på svenska. Du följer instruktioner exakt.' },
           { role: 'user', content: prompt }
@@ -809,7 +867,7 @@ export async function generate(specPath, runDir) {
   
   // Build internal prompt
   console.log('🔧 Bygger internal prompt...');
-  const internalPrompt = buildInternalPrompt(spec, styleDna, examples);
+  const internalPrompt = await buildInternalPrompt(spec, styleDna, examples, runDir);
   
   // Save spec snapshot
   const specSnapshot = path.join(runDir, 'post_spec.json');
@@ -828,7 +886,9 @@ export async function generate(specPath, runDir) {
     console.log('🤖 Genererar output...');
   }
   
-  const result = await callOpenAI(internalPrompt, spec);
+  // Determine model for Brev profile (Pro model), others use cheaper model
+  const model = spec.profile === 'brev' ? 'gpt-4o' : null;
+  const result = await callOpenAI(internalPrompt, spec, model);
   
   // Save output
   const outputPath = path.join(runDir, 'output_v1.txt');
