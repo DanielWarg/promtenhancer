@@ -1097,15 +1097,23 @@ Ninja-psykolog™ och den som fortfarande övar på att inte skicka DM när jag 
 
 Implementation är klar när:
 
-- [ ] Alla filer skapade enligt filstruktur
-- [ ] acceptance_checks.json har alla checks med rätt weights och scopes (inkl W007b)
-- [ ] Dual scoring fungerar (compliance + quality)
-- [ ] G001 Jaccard clone detector fungerar (threshold 0.85, min 35 tecken)
-- [ ] W007b heuristic check fungerar (identifierar imperativ före LLM-judge)
-- [ ] Iterator gör lokala patchar (diff visar små ändringar)
-- [ ] De-moralisera patch skyddar lista-struktur (W003) och lägger till självinvolvering
-- [ ] Format-patch ändrar aldrig ord (word_diff == 0 enforcement)
-- [ ] CLI fungerar med alla kommandon (generate, eval, iterate, run, compare)
-- [ ] npm run harness:brev och npm run harness:warm kör framgångsrikt
-- [ ] runs/ skapas med alla loggfiler (post_spec, internal_prompt, output, results, summary, diff)
+- [x] Alla filer skapade enligt filstruktur
+- [x] acceptance_checks.json har alla checks med rätt weights och scopes (inkl W007b)
+- [x] Dual scoring fungerar (compliance + quality)
+- [x] G001 Jaccard clone detector fungerar (threshold 0.85, min 35 tecken)
+- [x] W007b heuristic check fungerar (identifierar imperativ före LLM-judge)
+- [x] Iterator gör lokala patchar (diff visar små ändringar)
+- [x] De-moralisera patch skyddar lista-struktur (W003) och lägger till självinvolvering
+- [x] Format-patch ändrar aldrig ord (word_diff == 0 enforcement)
+- [x] CLI fungerar med alla kommandon (generate, eval, iterate, run, compare)
+- [x] npm run harness:brev och npm run harness:warm kör framgångsrikt
+- [x] runs/ skapas med alla loggfiler (post_spec, internal_prompt, output, results, summary, diff)
+- [x] **Offline mode fungerar utan LLM (NO_NETWORK=1)**
+- [x] **Quality score är null (inte sträng) när LLM är avstängt**
+- [x] **Explicit patch-klassning (LLM_REQUIRED_PATCHES vs DETERMINISTIC_PATCHES)**
+- [x] **CI-stabil regression testing utan API-nyckel**
+
+**Status:** ✅ **KLAR** - v1.1.0
+
+**Verifiering:** Se `harness/README.md` för release-kvitto och snabbverifiering.
 

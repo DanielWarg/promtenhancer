@@ -110,7 +110,6 @@ Svara ENDAST med JSON:
 
 // Score threshold for W007 (PASS if score >= threshold)
 const W007_THRESHOLD = 70;
-};
 
 /**
  * Parse LLM response to extract PASS/FAIL and notes

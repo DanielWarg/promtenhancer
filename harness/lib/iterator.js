@@ -12,35 +12,6 @@ import { config } from './config.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Explicit patch classification (CRITICAL for offline mode)
-export const LLM_REQUIRED_PATCHES = new Set([
-  'hook',
-  'metafor',
-  'reframing',
-  'de-klyscha',
-  'de-moralisera',
-  'parafrasera',
-  'miljo',
-  'mikrodetaljer',
-  'sarbar-auktoritet',
-  'signatur',
-  'langd'
-]);
-
-export const DETERMINISTIC_PATCHES = new Set([
-  'format',
-  'lista',
-  'rytm'
-]);
-
-// Verify all patches are classified
-const ALL_PATCHES = new Set([...LLM_REQUIRED_PATCHES, ...DETERMINISTIC_PATCHES]);
-const PATCH_ORDER_SET = new Set(PATCH_ORDER);
-if (ALL_PATCHES.size !== PATCH_ORDER_SET.size || 
-    [...ALL_PATCHES].some(p => !PATCH_ORDER_SET.has(p))) {
-  throw new Error('Patch classification mismatch: all patches must be in PATCH_ORDER and classified');
-}
-
 // Check to Patch mapping
 export const CHECK_TO_PATCH = {
   // Warm Provocation
@@ -86,6 +57,35 @@ export const PATCH_ORDER = [
   'signatur',
   'langd'
 ];
+
+// Explicit patch classification (CRITICAL for offline mode)
+export const LLM_REQUIRED_PATCHES = new Set([
+  'hook',
+  'metafor',
+  'reframing',
+  'de-klyscha',
+  'de-moralisera',
+  'parafrasera',
+  'miljo',
+  'mikrodetaljer',
+  'sarbar-auktoritet',
+  'signatur',
+  'langd'
+]);
+
+export const DETERMINISTIC_PATCHES = new Set([
+  'format',
+  'lista',
+  'rytm'
+]);
+
+// Verify all patches are classified
+const ALL_PATCHES = new Set([...LLM_REQUIRED_PATCHES, ...DETERMINISTIC_PATCHES]);
+const PATCH_ORDER_SET = new Set(PATCH_ORDER);
+if (ALL_PATCHES.size !== PATCH_ORDER_SET.size || 
+    [...ALL_PATCHES].some(p => !PATCH_ORDER_SET.has(p))) {
+  throw new Error('Patch classification mismatch: all patches must be in PATCH_ORDER and classified');
+}
 
 // Patch budgets
 export const PATCH_BUDGETS = {

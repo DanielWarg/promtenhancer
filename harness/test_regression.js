@@ -199,7 +199,7 @@ async function testIteratorSkipsLLMPatches() {
   console.log('🧪 Test 3: Iterator skips LLM-requiring patches');
   
   // This test verifies that determinePatch skips LLM patches when LLM is disabled
-  const { determinePatch } = await import('./lib/iterator.js');
+  const { determinePatch, LLM_REQUIRED_PATCHES, DETERMINISTIC_PATCHES } = await import('./lib/iterator.js');
   
   // Test with failed checks that require LLM patches
   const failedChecks = ['B005', 'B008']; // These require reframing and de-klyscha (LLM patches)
