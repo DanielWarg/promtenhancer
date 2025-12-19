@@ -25,3 +25,19 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Test results and temporary files
+*_TEST_RESULTS.md
+*_RESULTS.md
+*_ANALYS.md
+*_REVIDERADE*.md
+*_OMSKRIVNA*.md
+*_IMPLEMENTATION*.md
+*_SUMMARY.md
+LEVEL_*.md
+CHALLENGE_LEVELS_*.md
+BREV_*.md
+
+# Harness test runs
+harness/runs/
+runs/
