@@ -209,25 +209,33 @@ De ska kännas skrivna av samma person – men från olika mentala platser i liv
 **Avslut:** ${level.ending}
 
 ## LÄNGDGUARD (KRITISKT)
-- Sikta på 900–1100 tecken (så vi klarar 800–1200 även med variation)
-- Om output riskerar att bli kort: lägg in ett extra mikro-minne eller sensorisk detalj (ljud, ljus, kroppskänsla, tid, plats) + en lågmäld reflektion (1–2 meningar) – men utan råd
-- Om output riskerar att bli lång: kapa bort förklarande meningar (meta), behåll konkreta bilder
+- MÅLSLÄNGD: 900–1100 tecken (tillåtet 800–1200)
+- Om texten är för kort (< 800 tecken):
+  * Lägg till 1–2 mikrodetaljer (tidpunkt, kropp, rum, ljud)
+  * Fördjupa en befintlig tanke (ingen ny insikt, bara utveckla det som redan finns)
+  * Lägg till 1 reflekterande mening (inte råd, bara igenkänning)
+- Om texten är för lång (> 1200 tecken):
+  * Ta bort förklarande meningar (meta, abstraktioner)
+  * Behåll känsla och observation
+  * Kapa resonemang, behåll bilder och kärninsikt
+- VIKTIGT: Ändra INTE ordval, meningars innehåll eller tonalitet – bara längd
 
 ## FORMATERINGSGUARD (Flow, inte dikt)
-- Förbjud "telegramradning" (t.ex. "Kaffe. Kallt. Möte."). Korta meningar är okej, men de ska fortfarande bilda naturliga stycken
-- Minst 3 och max 6 stycken totalt
-- Varje stycke 1–3 meningar
-- VIKTIGT: Varje stycke ska separeras med en tom rad (radbrytning). Skriv med naturliga radbrytningar mellan styckena.
-- Tillåt EN ensam rad ("lonely sentence") max 2 gånger per text, och endast om den känns som en naturlig paus (inte rytm/rim)
-- Inga listor/bullets i Brev-profilen. Brev ska kännas som brev, inte LinkedIn-format
-- Skriv i naturliga stycken (3–6 stycken), inga punktlistor, undvik fragment som känns poetiska/telegram
-- Förbjud rim/rytm-upprepning som känns "dikt"
+- FÖRBJUDET: "Telegramradning" (t.ex. "Kaffe. Kallt. Möte."). Korta meningar är okej, men de ska fortfarande bilda naturliga stycken
+- KRAV: Minst 3 och max 6 stycken totalt
+- KRAV: Varje stycke 1–3 meningar (helst 2–3 för naturligt flow)
+- KRAV: Varje stycke ska separeras med en tom rad (radbrytning). Skriv med naturliga radbrytningar mellan styckena
+- KRAV: Max 2 ensamma rader ("lonely sentence") totalt, och endast om de känns som naturliga pauser (inte rytm/rim)
+- FÖRBJUDET: Listor eller bullets i Brev-profilen (Warm kan ha bullets, Brev får inte)
+- FÖRBJUDET: Rim/rytm-upprepning som känns "dikt"
+- MÅL: Lugnt, prosaiskt brevflöde med luft mellan stycken
+- VIKTIGT: Ändra INTE ordval eller meningars innehåll – bara formatering (radbrytningar)
 - Exempel på korrekt formatering:
   Du som sitter där.
 
-  Jag minns känslan.
+  Jag minns känslan när telefonen ringde. Hur hjärtat sjönk.
 
-  Det är okej att känna så.
+  Det är allt jag vet just nu.
 
 ## FLOW-GUARD (Brev, inte poesi eller LinkedIn)
 - Skriv som ett brev, inte LinkedIn, inte poesi

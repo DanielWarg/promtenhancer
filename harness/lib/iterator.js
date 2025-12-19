@@ -133,6 +133,13 @@ export function determinePatch(failedChecks) {
 /**
  * FORMAT PATCH - Create natural paragraph breaks, not many lonely sentences
  * For B003: 3-6 paragraphs with empty lines between, max 2 lonely sentences
+ * 
+ * Rules:
+ * - Only changes formatting (line breaks), NEVER words
+ * - Creates 3-6 natural paragraphs
+ * - Each paragraph: 1-3 sentences (prefer 2-3 for natural flow)
+ * - Max 2 lonely sentences (single-sentence paragraphs)
+ * - Preserves all words exactly as they are
  */
 function applyFormatPatch(output) {
   // Remove signature for processing
@@ -140,24 +147,93 @@ function applyFormatPatch(output) {
   const signature = signatureMatch ? signatureMatch[0] : '';
   const textWithoutSignature = signatureMatch ? output.slice(0, signatureMatch.index).trim() : output.trim();
   
-  // Split into sentences
+  // Split into sentences (preserve original text for word diff)
+  const originalText = textWithoutSignature;
   const sentences = textWithoutSignature.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
   
-  // Group sentences into 3-6 paragraphs (natural flow)
-  const targetParagraphs = Math.min(6, Math.max(3, Math.ceil(sentences.length / 3)));
-  const sentencesPerParagraph = Math.ceil(sentences.length / targetParagraphs);
+  if (sentences.length === 0) {
+    return {
+      success: false,
+      error: 'NO_SENTENCES',
+      message: 'No sentences found to format',
+      patchedOutput: null
+    };
+  }
   
+  // Strategy: Create natural paragraphs
+  // - Target 3-6 paragraphs
+  // - Each paragraph: 1-3 sentences (prefer 2-3 for natural flow)
+  // - Max 2 lonely sentences (single-sentence paragraphs)
+  
+  const targetParagraphs = Math.min(6, Math.max(3, Math.ceil(sentences.length / 2.5)));
   const paragraphs = [];
-  for (let i = 0; i < sentences.length; i += sentencesPerParagraph) {
-    const paragraphSentences = sentences.slice(i, i + sentencesPerParagraph);
+  let lonelyCount = 0;
+  let i = 0;
+  
+  while (i < sentences.length) {
+    // Decide paragraph size: prefer 2-3 sentences, but allow 1 if needed (max 2 lonely)
+    let paragraphSize;
+    
+    if (paragraphs.length >= targetParagraphs - 1) {
+      // Last paragraph: take remaining sentences
+      paragraphSize = sentences.length - i;
+    } else if (lonelyCount < 2 && sentences.length - i > targetParagraphs - paragraphs.length) {
+      // Can afford a lonely sentence (max 2 total)
+      paragraphSize = 1;
+      lonelyCount++;
+    } else {
+      // Prefer 2-3 sentences per paragraph for natural flow
+      paragraphSize = Math.min(3, Math.max(2, Math.ceil((sentences.length - i) / (targetParagraphs - paragraphs.length))));
+    }
+    
+    const paragraphSentences = sentences.slice(i, i + paragraphSize);
     paragraphs.push(paragraphSentences.join(' '));
+    i += paragraphSize;
+  }
+  
+  // Ensure we have 3-6 paragraphs
+  if (paragraphs.length < 3) {
+    // Too few paragraphs: split larger ones
+    while (paragraphs.length < 3 && paragraphs.some(p => p.split(/[.!?]/).length > 2)) {
+      const longIndex = paragraphs.findIndex(p => p.split(/[.!?]/).length > 2);
+      const longPara = paragraphs[longIndex];
+      const longSentences = longPara.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
+      if (longSentences.length >= 2) {
+        const mid = Math.ceil(longSentences.length / 2);
+        paragraphs.splice(longIndex, 1, 
+          longSentences.slice(0, mid).join(' '),
+          longSentences.slice(mid).join(' ')
+        );
+      } else {
+        break;
+      }
+    }
+  }
+  
+  if (paragraphs.length > 6) {
+    // Too many paragraphs: merge smaller ones
+    while (paragraphs.length > 6) {
+      const shortIndex = paragraphs.findIndex(p => p.split(/[.!?]/).length === 1);
+      if (shortIndex === -1) break;
+      
+      // Merge with next or previous paragraph
+      if (shortIndex < paragraphs.length - 1) {
+        paragraphs[shortIndex] = paragraphs[shortIndex] + ' ' + paragraphs[shortIndex + 1];
+        paragraphs.splice(shortIndex + 1, 1);
+      } else if (shortIndex > 0) {
+        paragraphs[shortIndex - 1] = paragraphs[shortIndex - 1] + ' ' + paragraphs[shortIndex];
+        paragraphs.splice(shortIndex, 1);
+      } else {
+        break;
+      }
+    }
   }
   
   // Join paragraphs with empty lines
   const patchedOutput = paragraphs.join('\n\n') + (signature ? '\n\n' + signature : '');
   
-  // CRITICAL: Verify no words were changed
-  const diffResult = wordDiff(output, patchedOutput);
+  // CRITICAL: Verify no words were changed (only formatting)
+  const diffResult = wordDiff(originalText, patchedOutput.replace(/\n\n/g, ' ').replace(/\n/g, ' ').trim());
   if (!diffResult.identical) {
     return {
       success: false,
@@ -170,6 +246,7 @@ function applyFormatPatch(output) {
   // Count improvements
   const oldBreaks = (output.match(/\n\s*\n/g) || []).length;
   const newBreaks = (patchedOutput.match(/\n\s*\n/g) || []).length;
+  const oldParagraphs = output.split(/\n\s*\n/).filter(p => p.trim().length > 0).length;
   
   return {
     success: true,
@@ -178,8 +255,8 @@ function applyFormatPatch(output) {
       type: 'format',
       location: 'full',
       linesChanged: paragraphs.length,
-      budgetUsed: `${oldBreaks} → ${newBreaks} line breaks (${paragraphs.length} paragraphs)`,
-      changes: [`Reformatted into ${paragraphs.length} paragraphs with natural breaks`],
+      budgetUsed: `${oldParagraphs} → ${paragraphs.length} paragraphs, ${oldBreaks} → ${newBreaks} line breaks`,
+      changes: [`Reformatted into ${paragraphs.length} paragraphs (${lonelyCount} lonely) with natural breaks`],
       wordDiff: 0
     }
   };
